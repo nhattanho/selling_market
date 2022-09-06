@@ -1,15 +1,19 @@
-.bg_signin {
-    background-image: url('./background.jpg');
+.bg_signup {
+    background-image: url('./background_signup.jpg');
     position: fixed;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-size: cover;
-    filter: blur(15px);
+    filter: blur(5px);
     z-index: -100;
     object-fit:contain;
-    background-size: 100% 100%;
     background-attachment: fixed;
     background-repeat: no-repeat;
+    background-origin:border-box;
+}
+
+.error {
+    bottom: 100px;
 }

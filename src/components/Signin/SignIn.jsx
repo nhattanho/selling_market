@@ -19,11 +19,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useForm } from "react-hook-form";
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import InputLabel from '@mui/material/InputLabel';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import OutlinedInput from '@mui/material/OutlinedInput';
-
 import { connectFirestoreEmulator } from 'firebase/firestore';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
@@ -43,50 +40,56 @@ function Copyright(props) {
 
 const SignIn = () => {
   const theme = createTheme();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const navitage = useNavigate()
+
+  /* Used for display wrong email or password message*/
   const [error, setError] = useState(false);
   const [loginObject, setLoginObject] = useState({
     email: '',
     password: '',
   });
+  const handleChange = (e) => {
+    setValues({ ...values, clicked: false});
+    setLoginObject(loginObject => ({
+      ...loginObject,
+      [e.target.name]: e.target.value,
+    }));
+    console.log("login clicked",values.clicked);
+  };
+  /*********************END****************************/
+
+  /* React Hook for Hidden Password feature*/
   const [values, setValues] = useState({
     password: "",
     showPassword: false,
+    clicked: false,
   });
   const handleClickShowPassword = () => {
     setValues({ ...values, showPassword: !values.showPassword });
   };
-  
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
+  /****************END********************/
 
-  const navitage = useNavigate()
-
-  const handleChange = (e) => {
-    setLoginObject(loginObject => ({
-      ...loginObject,
-      [e.target.name]: e.target.value,
-    }))
-  };
-
+  /* Used for validating form of SignIn */
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const handleLogin = (data) =>{
-    console.log(loginObject);
+    setValues({ ...values, clicked: true});
     signInWithEmailAndPassword(auth, data.email, data.password)
     .then((userCredential) => {
     const user = userCredential.user;
     navitage("/")
-    // console.log(user);
     })
     .catch((error) => {
       setError(true);
     });
   }
+  /******************END*******************/
 
   return (
     <ThemeProvider theme={theme}>
-      <div className='bg'>
-      </div>
+      <div className='bg_signin'/>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
@@ -124,6 +127,7 @@ const SignIn = () => {
             <TextField 
               margin="normal"
               label="Password"
+              defaultValue={loginObject.password}
               required
               fullWidth
               name="password"
@@ -132,9 +136,9 @@ const SignIn = () => {
               id="password"
               autoComplete="current-password"
               {...register("password", { 
-                required: true, 
+                required: true,  
               })}
-              onChange={handleChange}
+              onInput={handleChange /*Used onInput to get rid out of autofilling problem that tricks the web still consider the input as a empty field*/}
               InputProps={{
                 endAdornment:
                 <InputAdornment position="end">
@@ -163,7 +167,7 @@ const SignIn = () => {
               >
                 Sign In
               </Button>
-              {error && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>Wrong email or password</p>}
+              {values.clicked && error && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>Wrong email or password</p>}
             </div>
             <Grid container>
               <Grid item xs>
