@@ -40,7 +40,7 @@ function Copyright(props) {
 
 const SignIn = () => {
   const theme = createTheme();
-  const navitage = useNavigate()
+  const navitage = useNavigate();
 
   /* Used for display wrong email or password message*/
   const [error, setError] = useState(false);

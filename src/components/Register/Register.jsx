@@ -13,6 +13,11 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CloseIcon from '@mui/icons-material/Close';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useForm } from "react-hook-form";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore"; 
+import {db, auth} from '../../firebase';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
 import './register.css';
 
 function Copyright(props) {
@@ -33,7 +38,9 @@ const Register = () => {
         passwordConfirm: "",
         showPassword: false,
         error: null,
-        errorOpen: false
+        success: null,
+        errorOpen: false,
+        checkSaved: false,
     });
     const handleChange = name => e => {
         setState({
@@ -54,31 +61,77 @@ const Register = () => {
     /* Used for validating form of SignIn */
     const { register, handleSubmit, formState: { errors } } = useForm();
     const passwordMatch = () => state.password === state.passwordConfirm;
-    const errorClose = e => {
-        setState({
-            ...state,
-            errorOpen: false
-        });
-    };
-    /****************END********************/
-
-    const submitRegistration = (data) => {
-        console.log("state", state);
-        console.log("errors", errors);
-
+    const checkPassword = () => {
         if (!passwordMatch()) {
             setState({
             ...state,
             errorOpen: true,
             error: "Passwords don't match"
           });
+          return false;
         }
-        const newUserCredentials = {
-          email: state.email,
-          password: state.password,
-          passwordConfirm: state.passwordConfirm
-        };
-        console.log("newUserCredentials", newUserCredentials);
+        return true;
+    }
+    const errorClose = e => {
+        setState({
+            ...state,
+            errorOpen: false
+        });
+    };
+    const navitage = useNavigate();
+    const successClose = e => {
+        setState({
+            ...state,
+            checkSaved: false,
+        });
+        navitage("/signin")
+    }
+    /****************END********************/
+
+    const submitRegistration = async (data) => {
+        // console.log("state", state);
+        // console.log("errors", errors);
+        if (checkPassword()){
+            try {
+                    const res = await createUserWithEmailAndPassword(auth, state.email, state.password);
+                    //console.log("res", res);
+                    setDoc(doc(db, "customers", res.user.uid), {
+                        email: state.email,
+                        password: state.password,
+                        timeStamp: serverTimestamp(),
+                    }).then(() => {
+                        //console.log("saving done!");
+                        setState({...state, checkSaved: true, 
+                        success: "Successfully!, Going to SignIn..."});
+
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        setState({
+                            ...state,
+                            errorOpen: true,
+                            error: "Couldn't not save data in DB!"
+                          });
+                    });;
+            } catch(error){
+                /* messageError = error.substring(error.indexOf(' ') + 1); */
+                var messageError = "";
+                if (error.code === "auth/email-already-in-use") {
+                    messageError = "The email address is already in use";
+                } else if (error.code === "auth/invalid-email") {
+                    messageError = "The email address is not valid.";
+                } else if (error.code === "auth/operation-not-allowed") {
+                    messageError = "Operation not allowed.";
+                } else if (error.code === "auth/weak-password") {
+                    messageError = "The password is too weak. At least 6 characters";
+                }
+                setState({
+                    ...state,
+                    errorOpen: true,
+                    error: messageError,
+                  });
+            }
+        }
         //dispath to userActions
     };
 
@@ -209,14 +262,13 @@ const Register = () => {
                             anchorOrigin={{ vertical: "top", horizontal: "center" }}
                             open={state.errorOpen}
                             onClose={errorClose}
-                            autoHideDuration={5000}
-                            className='error'
+                            autoHideDuration={4000}
                         >
                             <SnackbarContent
                                 message={
-                                    <div>
+                                    <div style={{display:"flex", flexDirection:"row", alignItems:"center"}}>
                                         <span style={{ marginRight: "8px" }}>
-                                        <ErrorIcon fontSize="large" color="error" />
+                                            <ErrorIcon fontSize="large" color="error" />
                                         </span>
                                         <span> {state.error} </span>
                                     </div>
@@ -228,6 +280,36 @@ const Register = () => {
                                         onClick={errorClose}
                                     >
                                         <CloseIcon color="error" />
+                                    </IconButton>
+                                ]}
+                            />
+                        </Snackbar>
+                    ) : null}
+                    {state.checkSaved ? (
+                        <Snackbar
+                            variant="error"
+                            key={state.success}
+                            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                            open={state.checkSaved}
+                            onClose={successClose}
+                            autoHideDuration={4000}
+                        >
+                            <SnackbarContent
+                                message={
+                                    <div style={{display:"flex", flexDirection:"row", alignItems:"center"}}>
+                                        <span style={{ marginRight: "8px" }}>
+                                            <CheckCircleOutlineIcon fontSize="large" color="success" />
+                                        </span>
+                                        <span> {state.success} </span>
+                                    </div>
+                                }
+                                action={[
+                                    <IconButton
+                                        key="close"
+                                        aria-label="close"
+                                        onClick={successClose}
+                                    >
+                                        <CloseIcon color="secondary" />
                                     </IconButton>
                                 ]}
                             />
