@@ -93,6 +93,7 @@ const Register = () => {
         // console.log("errors", errors);
         if (checkPassword()){
             try {
+                    /*Could not create a new user with email used already in Authentication store*/
                     const res = await createUserWithEmailAndPassword(auth, state.email, state.password);
                     //console.log("res", res);
                     const username = state.email.split('@')[0];
@@ -101,6 +102,7 @@ const Register = () => {
                         email: state.email,
                         password: state.password,
                         timeStamp: serverTimestamp(),
+                        title: "buyer",
                     }).then(() => {
                         //console.log("saving done!");
                         setState({...state, checkSaved: true, 

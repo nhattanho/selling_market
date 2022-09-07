@@ -36,16 +36,13 @@ function Copyright(props) {
       <Link color="inherit" to='/'>
         Back to Home
       </Link>{' '}
-      <Link color="inherit" to='/signinasemployee'>
-        Employee Login
-      </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
     </Typography>
   );
 }
 
-const SignIn = () => {
+const EmployeeSignIn = () => {
   const theme = createTheme();
   const navitage = useNavigate();
   /* Used for display wrong email or password message*/
@@ -83,63 +80,6 @@ const SignIn = () => {
   /* Used for validating form of SignIn and clicked actions*/
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const handleLoginWithGoogle = async () => {
-    console.log("signin google");
-    signInWithPopup(auth, provider)
-    .then((result) => {
-      // This gives you a Google Access Token. You can use it to access the Google API.
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential.accessToken;
-      //console.log("user",user);
-      const user = result.user;
-      const email = user.email;
-      const username = email.split('@')[0];
-
-      const q = query(collection(db, "customers"), where("email", "==", email));
-      
-      getDocs(q)
-      .then((querySnapshot) => {
-        var id = "";
-        var count = 0;
-        querySnapshot.forEach((doc) => {id = doc.id;});
-        if(id === "") {
-          //console.log("empty");
-          console.log("write new email into DB");
-          setDoc(doc(db, "customers", user.uid), {
-            username: username,
-            email: email,
-            timeStamp: serverTimestamp(),
-            title: "buyer",
-          }).then(() => {
-            console.log("Login done! Going home page...");
-          })
-          .catch((error) => {
-              console.log(error);
-              setError({...error, status: true, message: "Couldn't not save data in DB!"});
-          });
-        }
-        else {
-          /* Email has already existed so no need to write DB again */
-          console.log("Dont write new email into DB");
-        }
-      }).catch((error) => {
-        setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
-      });
-      setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
-      navitage("/");
-    }).catch((error) => {
-      // Handle Errors example here.
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.customData.email;
-      // The AuthCredential type that was used.
-      const credential = provider.credentialFromError(error);
-      const messageError = extractErrorMessage(error);
-      setError({...error, status: true, message: messageError});
-    });
-  }
-
   const handleLogin = (data) =>{
     console.log("signin normal");
     setValues({ ...values, clicked: true});
@@ -147,7 +87,7 @@ const SignIn = () => {
     .then((userCredential) => {
       const user = userCredential.user;
       //console.log('user', user);
-      /*Need to query customer DB to make sure this email existed and dispatch*/
+      /*Need to query employee DB to make sure this email existed*/
       navitage("/")
     })
     .catch((err) => {
@@ -175,7 +115,7 @@ const SignIn = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Employee Sign in
           </Typography>
           {successGoogleLogin.status && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p> && <p>{ navitage("/")} </p>}
           <Box component="form" onSubmit={handleSubmit(handleLogin)} sx={{ mt: 1 }}>
@@ -247,10 +187,8 @@ const SignIn = () => {
                   Forgot password?
                 </Link>
               </Grid>
-              <Grid item>
-                <Link to='/register' variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
+              <Grid item xs style={{color: 'purple'}}>
+                <span>Ask Admin for an account.</span>
               </Grid>
             </Grid>
           </Box>
@@ -260,16 +198,6 @@ const SignIn = () => {
             <span>Or</span>
             <Crossline color='gray' width='100%' marginRight='0' marginLeft='auto'/>
           </div>
-          
-          <Button
-                type="submit"
-                variant="outlined"
-                sx={{ mt: 2, mb: 2 }}
-                onClick={handleLoginWithGoogle}
-                size="small"
-              >
-                <div style={{alignItems: 'center', display: 'flex'}}><GoogleIcon /></div>
-          </Button>
         </Box>
         <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
@@ -277,4 +205,4 @@ const SignIn = () => {
   )
 }
 
-export default SignIn;
+export default EmployeeSignIn;

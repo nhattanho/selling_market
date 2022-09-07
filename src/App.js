@@ -10,6 +10,7 @@ import Account from './components/Account/Account.jsx';
 import Cart from './components/Cart/Cart.jsx';
 import Forgot from './components/ForgotPassWord/Forgot.jsx';
 import Register from './components/Register/Register.jsx';
+import EmployeeSignIn from './components/Signin/EmployeeSignIn';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Routes>
             <Route exact path="/" element={<Home />} />
             <Route exact path="/signin" element={<SignIn />} />
+            <Route exact path="/signinasemployee" element={<EmployeeSignIn />} />
             <Route exact path="/orders" element={<Orders />} />
             <Route exact path="/account" element={<Account />} />
             <Route exact path="/cart" element={<Cart />} />
