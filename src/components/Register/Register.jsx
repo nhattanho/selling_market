@@ -17,7 +17,7 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import {db, auth} from '../../firebase';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-
+import {extractErrorMessage} from '../../utils/extract_function';
 import './register.css';
 
 function Copyright(props) {
@@ -95,7 +95,9 @@ const Register = () => {
             try {
                     const res = await createUserWithEmailAndPassword(auth, state.email, state.password);
                     //console.log("res", res);
+                    const username = state.email.split('@')[0];
                     setDoc(doc(db, "customers", res.user.uid), {
+                        username: username,
                         email: state.email,
                         password: state.password,
                         timeStamp: serverTimestamp(),
@@ -112,24 +114,15 @@ const Register = () => {
                             errorOpen: true,
                             error: "Couldn't not save data in DB!"
                           });
-                    });;
+                    });
             } catch(error){
                 /* messageError = error.substring(error.indexOf(' ') + 1); */
-                var messageError = "";
-                if (error.code === "auth/email-already-in-use") {
-                    messageError = "The email address is already in use";
-                } else if (error.code === "auth/invalid-email") {
-                    messageError = "The email address is not valid.";
-                } else if (error.code === "auth/operation-not-allowed") {
-                    messageError = "Operation not allowed.";
-                } else if (error.code === "auth/weak-password") {
-                    messageError = "The password is too weak. At least 6 characters";
-                }
+                var messageError = extractErrorMessage(error);
                 setState({
                     ...state,
                     errorOpen: true,
                     error: messageError,
-                  });
+                });
             }
         }
         //dispath to userActions

@@ -1,9 +1,8 @@
 import React from 'react';
 import { useState } from 'react';
-import {auth} from '../../firebase.js';
-import {signInWithEmailAndPassword} from "firebase/auth";
+import {auth, provider, db} from '../../firebase.js';
+import {signInWithEmailAndPassword, getRedirectResult, signInWithPopup, GoogleAuthProvider, signInWithRedirect, fetchSignInMethodsForEmail } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
-import './Signin.css';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -21,7 +20,12 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { connectFirestoreEmulator } from 'firebase/firestore';
+import { connectFirestoreEmulator, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from "firebase/firestore";
+import {extractErrorMessage} from '../../utils/extract_function';
+import {GoogleIcon} from '../../utils/build_svg_icons';
+import {Crossline} from '../../utils/crossline';
+import './Signin.css';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
 
@@ -41,9 +45,10 @@ function Copyright(props) {
 const SignIn = () => {
   const theme = createTheme();
   const navitage = useNavigate();
-
   /* Used for display wrong email or password message*/
-  const [error, setError] = useState(false);
+  const [error, setError] = useState({status: false, message: ""});
+  const [successGoogleLogin, setSuccessGoogleLogin] = useState({status: false, message: ""});
+
   const [loginObject, setLoginObject] = useState({
     email: '',
     password: '',
@@ -72,17 +77,77 @@ const SignIn = () => {
   };
   /****************END********************/
 
-  /* Used for validating form of SignIn */
+  /* Used for validating form of SignIn and clicked actions*/
   const { register, handleSubmit, formState: { errors } } = useForm();
+
+  const handleLoginWithGoogle = async () => {
+    console.log("signin google");
+    signInWithPopup(auth, provider)
+    .then((result) => {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      //console.log("user",user);
+      const user = result.user;
+      const email = user.email;
+      const username = email.split('@')[0];
+
+      const q = query(collection(db, "customers"), where("email", "==", email));
+      
+      getDocs(q)
+      .then((querySnapshot) => {
+        var id = "";
+        var count = 0;
+        querySnapshot.forEach((doc) => {id = doc.id;});
+        if(id === "") {
+          //console.log("empty");
+          console.log("write new email into DB");
+          setDoc(doc(db, "customers", user.uid), {
+            username: username,
+            email: email,
+            timeStamp: serverTimestamp(),
+          }).then(() => {
+            console.log("Login done! Going home page...");
+          })
+          .catch((error) => {
+              console.log(error);
+              setError({...error, status: true, message: "Couldn't not save data in DB!"});
+          });
+        }
+        else {
+          /* Email has already existed so no need to write DB again */
+          console.log("Dont write new email into DB");
+        }
+      }).catch((error) => {
+        setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
+      });
+      setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
+      navitage("/");
+    }).catch((error) => {
+      // Handle Errors example here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // The email of the user's account used.
+      const email = error.customData.email;
+      // The AuthCredential type that was used.
+      const credential = provider.credentialFromError(error);
+      const messageError = extractErrorMessage(error);
+      setError({...error, status: true, message: messageError});
+    });
+  }
+
   const handleLogin = (data) =>{
+    console.log("signin normal");
     setValues({ ...values, clicked: true});
     signInWithEmailAndPassword(auth, data.email, data.password)
     .then((userCredential) => {
-    const user = userCredential.user;
-    navitage("/")
+      const user = userCredential.user;
+      navitage("/")
     })
-    .catch((error) => {
-      setError(true);
+    .catch((err) => {
+      const messageError = extractErrorMessage(err);
+      setError({...error, status: true, message: messageError});
+      //console.log("error", error);
     });
   }
   /******************END*******************/
@@ -106,6 +171,7 @@ const SignIn = () => {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {successGoogleLogin.status && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p> && <p>{ navitage("/")} </p>}
           <Box component="form" onSubmit={handleSubmit(handleLogin)} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -167,7 +233,7 @@ const SignIn = () => {
               >
                 Sign In
               </Button>
-              {values.clicked && error && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>Wrong email or password</p>}
+              {values.clicked && error.status && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>{error.message}</p>}
             </div>
             <Grid container>
               <Grid item xs>
@@ -182,8 +248,24 @@ const SignIn = () => {
               </Grid>
             </Grid>
           </Box>
+
+          <div style={{marginTop: '15px', display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%'}}>
+            <Crossline color='gray' width='100%' marginLeft='0' marginRight='auto'/>
+            <span>Or</span>
+            <Crossline color='gray' width='100%' marginRight='0' marginLeft='auto'/>
+          </div>
+          
+          <Button
+                type="submit"
+                variant="outlined"
+                sx={{ mt: 2, mb: 2 }}
+                onClick={handleLoginWithGoogle}
+                size="small"
+              >
+                <div style={{alignItems: 'center', display: 'flex'}}><GoogleIcon /></div>
+          </Button>
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
+        <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
     </ThemeProvider>
   )
