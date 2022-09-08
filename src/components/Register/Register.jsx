@@ -98,11 +98,13 @@ const Register = () => {
                     //console.log("res", res);
                     const username = state.email.split('@')[0];
                     setDoc(doc(db, "customers", res.user.uid), {
-                        username: username,
                         email: state.email,
+                        username: username,
                         password: state.password,
-                        timeStamp: serverTimestamp(),
                         title: "buyer",
+                        timeStamp: serverTimestamp(),
+                        accessToken: res.user.accessToken,
+                        id: res.user.uid,
                     }).then(() => {
                         //console.log("saving done!");
                         setState({...state, checkSaved: true, 
@@ -287,7 +289,7 @@ const Register = () => {
                             anchorOrigin={{ vertical: "top", horizontal: "center" }}
                             open={state.checkSaved}
                             onClose={successClose}
-                            autoHideDuration={4000}
+                            autoHideDuration={3000}
                         >
                             <SnackbarContent
                                 message={

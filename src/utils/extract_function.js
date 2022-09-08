@@ -10,6 +10,8 @@ export const extractErrorMessage = (err) => {
         errorMessage = "The password is too weak. At least 6 characters!";
     } else if (errorMessage === "user-not-found") {
         errorMessage = "The email or user does not existed!";
+    } else if (errorMessage === "wrong-password") {
+        errorMessage = "Password was wrong!";
     }
     return errorMessage;
 }

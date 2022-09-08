@@ -89,29 +89,37 @@ const SignIn = () => {
     .then((result) => {
       // This gives you a Google Access Token. You can use it to access the Google API.
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential.accessToken;
+      const accessToken = credential.accessToken;
       //console.log("user",user);
       const user = result.user;
       const email = user.email;
       const username = email.split('@')[0];
-
+      const uid = user.uid;
       const q = query(collection(db, "customers"), where("email", "==", email));
-      
+      console.log("uid", uid);
       getDocs(q)
       .then((querySnapshot) => {
-        var id = "";
-        var count = 0;
-        querySnapshot.forEach((doc) => {id = doc.id;});
+        var id = ""; 
+        var data = {};
+        querySnapshot.forEach((doc) => {
+          id = doc.id; 
+          data = doc.data();
+        });
         if(id === "") {
           //console.log("empty");
-          console.log("write new email into DB");
-          setDoc(doc(db, "customers", user.uid), {
-            username: username,
+          const userData = {
             email: email,
-            timeStamp: serverTimestamp(),
+            username: username,
+            password:"",
             title: "buyer",
-          }).then(() => {
-            console.log("Login done! Going home page...");
+            timeStamp: serverTimestamp(),
+            accessToken: accessToken,
+            id: uid,
+          };
+          setDoc(doc(db, "customers", user.uid), userData).then(() => {
+            //console.log("Login done! Going home page...");
+            //console.log("write new email into DB");
+            /* Dispatch user data here */
           })
           .catch((error) => {
               console.log(error);
@@ -121,12 +129,43 @@ const SignIn = () => {
         else {
           /* Email has already existed so no need to write DB again */
           console.log("Dont write new email into DB");
+          const userData = {
+            ...data,
+          }
+          console.log("userData by Google login", userData);
+          /* Dispatch userData here */
+          /* Testing for rewrite again for existed document ==> automatically 
+          overwrite or removed the existed fields and update for the new fields
+          following our actions*/
+          /*
+            const userData1 = {
+              email: email,
+              username: username,
+              password:"",
+              title: "buyer",
+              timeStamp: serverTimestamp(),
+              accessToken: accessToken,
+              id: uid,
+              test: "testing123",
+              test1: "test second time"
+            };
+            setDoc(doc(db, "customers", user.uid), userData1).then(() => {
+              //console.log("Login done! Going home page...");
+              console.log("write new email into DB");
+            })
+            .catch((error) => {
+                console.log(error);
+                setError({...error, status: true, message: "Couldn't not save data in DB!"});
+            });
+            */
+          /**************************************************/
         }
+        setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
+        navitage("/");
       }).catch((error) => {
         setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
       });
-      setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
-      navitage("/");
+      
     }).catch((error) => {
       // Handle Errors example here.
       const errorCode = error.code;
@@ -143,14 +182,38 @@ const SignIn = () => {
   const handleLogin = (data) =>{
     console.log("signin normal");
     setValues({ ...values, clicked: true});
+    var id = "";
+    var userData = {};
     signInWithEmailAndPassword(auth, data.email, data.password)
-    .then((userCredential) => {
+    .then(async (userCredential) => {
       const user = userCredential.user;
       //console.log('user', user);
+      const accessToken = user.accessToken;
       /*Need to query customer DB to make sure this email existed and dispatch*/
-      navitage("/")
+      const q = query(collection(db, "customers"), where("email", "==", data.email));
+      try {
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          id = doc.id;
+          userData = doc.data();
+        });
+        if(id === "") {
+          console.log("You need to create an account first!");
+          setError({...error, status: true, message: "You need to create an account first!"});
+        }
+        else {
+          setError({...error, status: false, message: ""});
+          console.log('user data', userData);
+          /* Dispatch user information here */
+          navitage("/");
+        }
+      } catch (e ){
+          console.log("Error getting cached document:", e);
+      };
+      //navitage("/")
     })
     .catch((err) => {
+      console.log("error code", err);
       const messageError = extractErrorMessage(err);
       setError({...error, status: true, message: messageError});
       //console.log("error", error);
@@ -193,7 +256,7 @@ const SignIn = () => {
                   required: true,  
                   pattern: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/ 
               })}
-              onChange={handleChange}
+              onInput={handleChange}
             />
             {errors.email && <p style={{color:'red'}}>Please check the Email</p>}
             <TextField 

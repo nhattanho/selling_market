@@ -36,6 +36,9 @@ function Copyright(props) {
       <Link color="inherit" to='/'>
         Back to Home
       </Link>{' '}
+      <Link color="inherit" to='/signin'>
+        Customer Login
+      </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
     </Typography>
@@ -84,11 +87,53 @@ const EmployeeSignIn = () => {
     console.log("signin normal");
     setValues({ ...values, clicked: true});
     signInWithEmailAndPassword(auth, data.email, data.password)
-    .then((userCredential) => {
+    .then( (userCredential) => {
       const user = userCredential.user;
-      //console.log('user', user);
+      console.log('user from Authentication DB', user);
+      const accessToken = user.accessToken;
       /*Need to query employee DB to make sure this email existed*/
-      navitage("/")
+      const q = query(collection(db, "employees"), where("email", "==", data.email));
+      /********************************************************************************************/
+      /* If we want to use await function like below, need to have asyn function for parent function as:
+      .then( async (userCredential) => { */
+      /*
+      try {
+        const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            console.log(doc.id, " => ", doc.data());
+        })} catch (e ){
+          console.log("Error getting cached document:", e);
+      };
+      */
+      /********************************************************************************************/
+      getDocs(q)
+      .then((querySnapshot) => {
+        //console.log("querySnapshot", querySnapshot);
+        var id = ""; var data = {};
+        querySnapshot.forEach((doc) => {
+          id = doc.id; data = doc.data();
+          //console.log("doc", doc);
+        });
+        //console.log("id", id);
+        if(id === "") {
+          console.log("You are not an employee.");
+          setError({...error, status: true, message: "You are not an employee!"});
+        }
+        else {
+          //console.log("your data infor", data);
+          const userData = {
+            ...data,
+            accessToken: accessToken,
+            id: id,
+          };
+          console.log("employee Data", userData);
+          /*Dispatch employee data here then navigate*/
+          navitage("/");
+        }
+      }).catch((error) => {
+        setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
+      });
     })
     .catch((err) => {
       const messageError = extractErrorMessage(err);
@@ -192,12 +237,6 @@ const EmployeeSignIn = () => {
               </Grid>
             </Grid>
           </Box>
-
-          <div style={{marginTop: '15px', display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%'}}>
-            <Crossline color='gray' width='100%' marginLeft='0' marginRight='auto'/>
-            <span>Or</span>
-            <Crossline color='gray' width='100%' marginRight='0' marginLeft='auto'/>
-          </div>
         </Box>
         <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
