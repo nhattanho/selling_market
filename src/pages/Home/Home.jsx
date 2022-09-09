@@ -1,7 +1,7 @@
 import React from 'react';
 import './Home.css';
 import Product from '../../components/Product/Product.jsx';
-import Header from '../../components/Header/Header';
+import Header from '../../components/Header/Header.jsx';
 
 const Home = () => {
   return (
@@ -20,11 +20,13 @@ const Home = () => {
             </div>
 
             <div className='home_row'>
-
+                <Product/>
+                <Product/>
             </div>
-
+            
             <div className='home_row'>
-
+                <Product/>
+                <Product/>
             </div>
         </div>
     </div>

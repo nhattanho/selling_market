@@ -26,6 +26,9 @@ import {extractErrorMessage} from '../../utils/extract_function';
 import {GoogleIcon} from '../../utils/build_svg_icons';
 import {Crossline} from '../../utils/crossline';
 import './Signin.css';
+
+import { useSelector, useDispatch } from "react-redux";
+import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
 
@@ -48,23 +51,7 @@ function Copyright(props) {
 const EmployeeSignIn = () => {
   const theme = createTheme();
   const navitage = useNavigate();
-  /* Used for display wrong email or password message*/
-  const [error, setError] = useState({status: false, message: ""});
-  const [successGoogleLogin, setSuccessGoogleLogin] = useState({status: false, message: ""});
-
-  const [loginObject, setLoginObject] = useState({
-    email: '',
-    password: '',
-  });
-  const handleChange = (e) => {
-    setValues({ ...values, clicked: false});
-    setLoginObject(loginObject => ({
-      ...loginObject,
-      [e.target.name]: e.target.value,
-    }));
-    console.log("login clicked",values.clicked);
-  };
-  /*********************END****************************/
+  const dispatch = useDispatch();
 
   /* React Hook for Hidden Password feature*/
   const [values, setValues] = useState({
@@ -79,6 +66,24 @@ const EmployeeSignIn = () => {
     event.preventDefault();
   };
   /****************END********************/
+
+  /* Used for display wrong email or password message*/
+  const [error, setError] = useState({status: false, message: ""});
+  const [successGoogleLogin, setSuccessGoogleLogin] = useState({status: false, message: ""});
+
+  const [loginObject, setLoginObject] = useState({
+    email: '',
+    password: '',
+  });
+  const handleChange = (e) => {
+    setValues({ ...values, clicked: false});
+    setLoginObject(loginObject => ({
+      ...loginObject,
+      [e.target.name]: e.target.value,
+    }));
+    //console.log("login clicked",values.clicked);
+  };
+  /*********************END****************************/
 
   /* Used for validating form of SignIn and clicked actions*/
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -122,13 +127,23 @@ const EmployeeSignIn = () => {
         }
         else {
           //console.log("your data infor", data);
+          /*Adding employee from Dashboard will import accessToken
+          and id field for its data by creating an Auth and saving
+          into Firestore, then will remove these checking soon*/
+          if(!data.hasOwnProperty('accessToken') 
+          || data.accessToken === "") {
+            data.accessToken = accessToken;
+          }
+          if(!data.hasOwnProperty('id')
+          || data.id === "") {
+            data.id = id;
+          }
           const userData = {
             ...data,
-            accessToken: accessToken,
-            id: id,
           };
           console.log("employee Data", userData);
           /*Dispatch employee data here then navigate*/
+          dispatch(loginAction(userData));
           navitage("/");
         }
       }).catch((error) => {

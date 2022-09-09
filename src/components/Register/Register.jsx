@@ -109,7 +109,6 @@ const Register = () => {
                         //console.log("saving done!");
                         setState({...state, checkSaved: true, 
                         success: "Successfully!, Going to SignIn..."});
-
                     })
                     .catch((error) => {
                         console.log(error);

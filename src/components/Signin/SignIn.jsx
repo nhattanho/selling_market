@@ -26,6 +26,9 @@ import {extractErrorMessage} from '../../utils/extract_function';
 import {GoogleIcon} from '../../utils/build_svg_icons';
 import {Crossline} from '../../utils/crossline';
 import './Signin.css';
+
+import { useSelector, useDispatch } from "react-redux";
+import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
 
@@ -48,6 +51,9 @@ function Copyright(props) {
 const SignIn = () => {
   const theme = createTheme();
   const navitage = useNavigate();
+  const state = useSelector((state) => state);
+  const dispatch = useDispatch();
+  //console.log("state is ", state);
   /* Used for display wrong email or password message*/
   const [error, setError] = useState({status: false, message: ""});
   const [successGoogleLogin, setSuccessGoogleLogin] = useState({status: false, message: ""});
@@ -120,6 +126,7 @@ const SignIn = () => {
             //console.log("Login done! Going home page...");
             //console.log("write new email into DB");
             /* Dispatch user data here */
+            dispatch(loginAction(userData));
           })
           .catch((error) => {
               console.log(error);
@@ -131,7 +138,8 @@ const SignIn = () => {
           console.log("Dont write new email into DB");
           const userData = {
             ...data,
-          }
+          };
+          dispatch(loginAction(userData));
           console.log("userData by Google login", userData);
           /* Dispatch userData here */
           /* Testing for rewrite again for existed document ==> automatically 
@@ -173,14 +181,14 @@ const SignIn = () => {
       // The email of the user's account used.
       const email = error.customData.email;
       // The AuthCredential type that was used.
-      const credential = provider.credentialFromError(error);
+      const credential = GoogleAuthProvider.credentialFromError(error);
       const messageError = extractErrorMessage(error);
       setError({...error, status: true, message: messageError});
     });
   }
 
   const handleLogin = (data) =>{
-    console.log("signin normal");
+    //console.log("signin normal");
     setValues({ ...values, clicked: true});
     var id = "";
     var userData = {};
@@ -203,14 +211,14 @@ const SignIn = () => {
         }
         else {
           setError({...error, status: false, message: ""});
-          console.log('user data', userData);
+          //console.log('user data', userData);
           /* Dispatch user information here */
+          dispatch(loginAction(userData));
           navitage("/");
         }
       } catch (e ){
           console.log("Error getting cached document:", e);
       };
-      //navitage("/")
     })
     .catch((err) => {
       console.log("error code", err);
