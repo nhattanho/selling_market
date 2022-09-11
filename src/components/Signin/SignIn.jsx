@@ -90,7 +90,7 @@ const SignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleLoginWithGoogle = async () => {
-    console.log("signin google");
+    //console.log("signin google");
     signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a Google Access Token. You can use it to access the Google API.

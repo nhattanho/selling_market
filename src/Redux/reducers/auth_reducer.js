@@ -1,4 +1,5 @@
 import {LOGIN, LOGOUT} from '../actions/types_actions.js';
+import {persistor} from '../store/store.js';
 
 const initialState = {
     isLogin: false,
@@ -10,7 +11,6 @@ const AuthReducer = (state = initialState, action) => {
     switch (type) {
       case LOGIN:
         return {
-          ...state,
           isLogin: true,
           userLoginData: payload.userLoginData,
         };
@@ -20,6 +20,7 @@ const AuthReducer = (state = initialState, action) => {
           ...state,
           isLogin: false,
         };
+
       default:
         return state;
     }

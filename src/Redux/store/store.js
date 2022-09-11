@@ -11,8 +11,8 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import thunk from "redux-thunk";
 import combineReducers from "../reducers/combine_reducer";
 
-import { persistStore, persistReducer } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 
 /*If this option is provided, it should contain all the middleware 
 functions you want added to the store. configureStore will 
@@ -24,7 +24,7 @@ const middleware = [thunk];
 const persistConfig = {
     key: 'root',
     storage,
-}
+};
 
 const persistedReducer = persistReducer(persistConfig, combineReducers)
 

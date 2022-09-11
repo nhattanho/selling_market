@@ -5,14 +5,22 @@ import SearchIcon from '@mui/icons-material/Search';
 import Button from '@mui/material/Button';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useSelector, useDispatch } from "react-redux";
-import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
+import {logoutAction} from '../../Redux/actions/auth_action';
+import {adminLogout} from '../../Redux/actions/user_action';
 
 const Header = () => {
     const dispatch = useDispatch();
     const state = useSelector((state) => state.AuthReducer);
+    //const userreducer = useSelector((state) => state.UserReducer);
     const isLogin = state.isLogin;
     var {username, title} = (state.hasOwnProperty('userLoginData')) ? state.userLoginData : "";
-    //console.log("username", username);
+    //console.log("userreducer", userreducer);
+
+    const handleLogout = () => {
+        dispatch(logoutAction());
+        if(title === "admin") dispatch(adminLogout());
+        //persistor.purge();
+    };
 
     return (
         <div className='header'>
@@ -33,7 +41,7 @@ const Header = () => {
             </div>
 
             <div className='header_nav'>
-                {title === "admin" ? 
+                {isLogin && title === "admin" ? 
                 (
                     <div className='header_nav'>
                         <Link 
@@ -93,9 +101,7 @@ const Header = () => {
                 (
                     <div className='header_nav'>
                         <Link 
-                            onClick={() => {
-                                dispatch(logoutAction());
-                            }}
+                            onClick={handleLogout}
                             to = '/'
                             style={{textDecoration: 'none', }}
                         >

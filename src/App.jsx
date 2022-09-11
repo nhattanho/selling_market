@@ -15,7 +15,11 @@ import Cart from './components/Cart/Cart.jsx';
 import Forgot from './components/ForgotPassWord/Forgot.jsx';
 import Register from './components/Register/Register.jsx';
 import EmployeeSignIn from './components/Signin/EmployeeSignIn';
-import Dashboard from './components/Dashboard/Dashboard.jsx';
+import Dashboard from './pages/Dashboard/Dashboard.jsx';
+import ListUser from './components/Dashboard_Components/ListUser/ListUser.jsx';
+import SingleUser from './components/Dashboard_Components/SingleUser/SingleUser.jsx';
+import NewUser from './components/Dashboard_Components/NewUser/NewUser.jsx';
+import { productInputs, userInputs } from "./formSource";
 
 const App = () => {
   return (
@@ -35,6 +39,14 @@ const App = () => {
               <Route exact path="/forgotPassword" element={<Forgot />} />
               <Route exact path="/register" element={<Register />} />
               <Route exact path="/dashboard" element={<Dashboard />} />
+              
+              <Route path="users">
+                <Route index element={<ListUser />} />
+                <Route path=":userId" element={<SingleUser />} />
+                <Route path="new"
+                  element={<NewUser inputs={userInputs} title="Add New User" />}
+                />
+              </Route>
             </Routes>
           </div>
         </Router>

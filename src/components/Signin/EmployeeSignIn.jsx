@@ -94,7 +94,7 @@ const EmployeeSignIn = () => {
     signInWithEmailAndPassword(auth, data.email, data.password)
     .then( (userCredential) => {
       const user = userCredential.user;
-      console.log('user from Authentication DB', user);
+      //console.log('user from Authentication DB', user);
       const accessToken = user.accessToken;
       /*Need to query employee DB to make sure this email existed*/
       const q = query(collection(db, "employees"), where("email", "==", data.email));
