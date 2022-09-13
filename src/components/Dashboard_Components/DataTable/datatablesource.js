@@ -1,3 +1,4 @@
+import avatar from '../../../utils/assets/random_avatar_images.png';
 export const userColumns = [
     { field: "id", headerName: "ID", width: 100 },
     {
@@ -7,8 +8,8 @@ export const userColumns = [
       renderCell: (params) => {
         return (
           <div className="cellWithImg">
-            <img className="cellImg" src={params.row.avatarurl} alt="avatar" />
-            {params.row.username}
+            <img className="cellImg" src={(params.row.avatarurl.trim().length === 0 || params.row.avatarurl==="")?avatar:params.row.avatarurl} alt="avatar" />
+            {params.row.fullname?params.row.fullname:params.row.username}
           </div>
         );
       },

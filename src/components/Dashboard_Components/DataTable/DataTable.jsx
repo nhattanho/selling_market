@@ -14,10 +14,10 @@ const Datatable = () => {
   even it doesn't change the value, it will make the useEffect run again
   if the dependent array including state variable like [state]);*/
   const state = useSelector((state) => state.UserReducer);
-  console.log("Data table", state);
   const arrayusers = state.arrayusers;
-  const getuserfromdb = state.getuserfromdb;
-  console.log(getuserfromdb);
+  //console.log("Data table", state);
+  const havegetuserfromdb = state.havegetuserfromdb;
+  //console.log(havegetuserfromdb);
   //   const handleDelete = (id) => {
   //     setData(data.filter((item) => item.id !== id));
   //   };
@@ -29,7 +29,7 @@ const Datatable = () => {
     the global store - Login for a long time, admin shoud
     logout and login again to get the lastest employee information*/
     //console.log("into userEffect", getuserfromdb);
-    if(!getuserfromdb){
+    if(!havegetuserfromdb){
       console.log("fetching data");
       const q = query(collection(db, "employees"), orderBy("timeStamp"), limit(100));
       getDocs(q).then((querySnapshot) => {
@@ -62,9 +62,11 @@ const Datatable = () => {
       renderCell: (params) => {
         return (
           <div className="cellAction">
-            <Link to="/users/test" style={{ textDecoration: "none" }}>
-              <div className="viewButton">View</div>
+            <Link to={`/users/${params.row.id}`} state={{ SingledataUser: params.row}}
+            style={{ textDecoration: "none" }}>
+                <div className="viewButton">View</div>
             </Link>
+
             <div
               className="deleteButton"
             >
@@ -80,7 +82,7 @@ const Datatable = () => {
         
       <div className="datatableTitle">
         Add New User
-        <Link to="/users/new" className="link">
+        <Link to="/users/new"  className="link">
           Add New
         </Link>
       </div>

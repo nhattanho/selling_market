@@ -1,4 +1,5 @@
 export const extractErrorMessage = (err) => {
+    if(err.code === 403) return "Permission denied.";
     var errorMessage = err.code.split('/')[1];
     if (errorMessage === "email-already-in-use") {
         errorMessage = "The email address is already in use!";

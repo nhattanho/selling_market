@@ -3,4 +3,5 @@ export const LOGIN = "LOGIN";
 export const LOGOUT = "LOGOUT";
 export const GET_USERS_FROM_DB = "GET_USERS_FROM_DB";
 export const ADMIN_LOGOUT = "ADMIN_LOGOUT";
+export const ADD_NEW_USER = "ADD_NEW_USER";
 

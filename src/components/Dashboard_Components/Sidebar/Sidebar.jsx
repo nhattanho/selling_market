@@ -24,9 +24,6 @@ const Sidebar = () => {
   //const { dispatch } = useContext(DarkModeContext);
   const dispatch = useDispatch();
 
-  const getUsers = () => {
-    
-  }
   return (
     <div className="sidebar">
 
@@ -49,7 +46,7 @@ const Sidebar = () => {
           </Link>
 
           <p className="title">LISTS</p>
-          <Link onClick={getUsers} to="/users" style={{ textDecoration: "none" }}>
+          <Link to="/users" style={{ textDecoration: "none" }}>
             <li>
               <PersonOutlineIcon className="icon" />
               <span>Users</span>

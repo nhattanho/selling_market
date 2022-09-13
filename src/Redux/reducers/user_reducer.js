@@ -1,8 +1,8 @@
-import {GET_USERS_FROM_DB, ADMIN_LOGOUT} from '../actions/types_actions.js';
+import {GET_USERS_FROM_DB, ADMIN_LOGOUT, ADD_NEW_USER} from '../actions/types_actions.js';
 
 const initialState = {
     arrayusers: [],
-    getuserfromdb: false,
+    havegetuserfromdb: false,
 };
 
 /*Admin user should logout and login to get the latest update for user information*/
@@ -13,14 +13,22 @@ const UserReducer = (state = initialState, action) => {
         return {
           ...state,
           arrayusers: payload.arrayusers,
-          getuserfromdb: true,
+          havegetuserfromdb: true,
         };
       case ADMIN_LOGOUT:
         return {
           ...state,
           arrayusers: [],
-          getuserfromdb: false,
+          havegetuserfromdb: false,
         };
+      case ADD_NEW_USER:
+        //console.log("in user reducer");
+        const newArrayUsers = [...(state.arrayusers), payload.newUserData];
+        return {
+          ...state,
+          arrayusers: newArrayUsers,
+          havegetuserfromdb: true,
+        }
       default:
         return state;
     }
