@@ -1,4 +1,9 @@
-import {GET_USERS_FROM_DB, ADMIN_LOGOUT, ADD_NEW_USER} from '../actions/types_actions.js';
+import {
+  GET_USERS_FROM_DB, 
+  ADMIN_LOGOUT,
+  ADD_NEW_USER,
+  DELETE_USER,
+} from '../actions/types_actions.js';
 
 const initialState = {
     arrayusers: [],
@@ -27,6 +32,12 @@ const UserReducer = (state = initialState, action) => {
         return {
           ...state,
           arrayusers: newArrayUsers,
+          havegetuserfromdb: true,
+        }
+      case DELETE_USER:
+        return {
+          ...state,
+          arrayusers: payload.arrayusers,
           havegetuserfromdb: true,
         }
       default:

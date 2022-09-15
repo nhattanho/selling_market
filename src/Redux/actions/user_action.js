@@ -1,4 +1,9 @@
-import { GET_USERS_FROM_DB, ADMIN_LOGOUT, ADD_NEW_USER } from "./types_actions";
+import { 
+  GET_USERS_FROM_DB, 
+  ADMIN_LOGOUT, 
+  ADD_NEW_USER,
+  DELETE_USER,
+ } from "./types_actions";
 
 /*This action will be an "action argurment" passed into user reducer*/
 const getusersAction = (arrayusers) => {
@@ -24,6 +29,16 @@ const addNewUser = (newUserData) => {
       newUserData: newUserData,
     }
   }
+};
+
+const deleteUserForAdmin = (newarrayusers) => {
+  //console.log("newUserdata from user action", newUserData);
+  return {
+    type: DELETE_USER,
+    payload: {
+      arrayusers: newarrayusers,
+  }
+  }
 }
 
-export { getusersAction, adminLogout, addNewUser };
+export { getusersAction, adminLogout, addNewUser, deleteUserForAdmin };

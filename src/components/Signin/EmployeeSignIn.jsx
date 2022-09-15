@@ -141,7 +141,7 @@ const EmployeeSignIn = () => {
           const userData = {
             ...data,
           };
-          console.log("employee Data", userData);
+          //console.log("employee Data", userData);
           /*Dispatch employee data here then navigate*/
           dispatch(loginAction(userData));
           navitage("/");

@@ -5,8 +5,16 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { db } from "../../../firebase";
-import { getDocs, collection, query, where, orderBy, limit } from "firebase/firestore";
+import { getDocs, collection, query, 
+where, orderBy, limit, doc, deleteDoc } 
+from "firebase/firestore";
+import { getAuth, deleteUser, EmailAuthProvider, reauthenticateWithCredential} from "firebase/auth";
 import { getusersAction } from "../../../Redux/actions/user_action";
+import { deleteUserForAdmin } from "../../../Redux/actions/user_action";
+import { extractErrorMessage } from "../../../utils/extract_function";
+import SnackBarModify from '../../SnackBar/SnackBar.jsx';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { LOADING, DELETED_SUCCESS, DELETED_FAIL } from "../../../utils/globalVariable";
 
 const Datatable = () => {
   const dispatch = useDispatch();
@@ -17,12 +25,12 @@ const Datatable = () => {
   const arrayusers = state.arrayusers;
   //console.log("Data table", state);
   const havegetuserfromdb = state.havegetuserfromdb;
-  //console.log(havegetuserfromdb);
-  //   const handleDelete = (id) => {
-  //     setData(data.filter((item) => item.id !== id));
-  //   };
+  console.log("havegetuserfromdb", havegetuserfromdb);
+
+  const [status, setStatus] = useState({error: false, message: ""});
 
   useEffect(() => {
+    console.log("in effect data table");
     /*Prevent requesting data many times for admin user,
     any action relating to  user like delete, add, update,...
     we are not only update the DB but also for the state of
@@ -54,6 +62,71 @@ const Datatable = () => {
     }
   },[]);
 
+  const handleDelete = async (e, id) => {
+    e.preventDefault();
+    //console.log("id", id);
+    //console.log("new array", newarrayusers);
+    setStatus({error: false, message: LOADING});
+    try {
+      /*Delete account in Auth DB*/
+      const getDeleteUser = arrayusers.find(user => {
+        return user && user.id === id;
+      });
+      //console.log("get delete user", getDeleteUser.email);
+      
+      /* This code just delete for current Auth User, not for the other one
+      const authCredential = EmailAuthProvider.credential(getDeleteUser.email, getDeleteUser.password);
+      console.log("credential", authCredential);
+      const preAuth = auth.currentUser;
+      const result = await reauthenticateWithCredential(
+        auth.currentUser,
+        authCredential
+      )
+      console.log("result.user", result.user);
+      await deleteUser(result.user)
+      ****************************************************************/
+
+      /*Reference: https://stackoverflow.com/questions/38800414/delete-a-specific-user-from-firebase*/
+      const auth2 = getAuth();
+      const authCredential = EmailAuthProvider.credential(getDeleteUser.email, getDeleteUser.password);
+      signInWithEmailAndPassword(auth2, getDeleteUser.email, getDeleteUser.password)
+      .then(async()=>{
+        try {
+          const userInFirebaseAuth = auth2.currentUser;
+          const result = await reauthenticateWithCredential(
+          userInFirebaseAuth,
+          authCredential,
+          );
+          await deleteUser(result.user);
+        } catch(err){
+          console.log(err);
+        } 
+      })
+      .catch((err)=>{
+        console.log(err);
+        var errorMessage = extractErrorMessage(err);
+        errorMessage = errorMessage==="" ? "Deleted Fail" : errorMessage;
+        console.log("err",err);
+        setStatus({error:true, message: errorMessage});
+      })
+
+      /*Deleted from Firestore DB*/
+      await deleteDoc(doc(db, "employees", id));
+      const newarrayusers = arrayusers.filter(user => user.id !== id);
+      dispatch(deleteUserForAdmin(newarrayusers));
+      setStatus({error: false, message: DELETED_SUCCESS});
+    } catch (err) {
+      var errorMessage = extractErrorMessage(err);
+      errorMessage = errorMessage==="" ? DELETED_FAIL : errorMessage;
+      console.log("err",err);
+      setStatus({error:true, message: errorMessage});
+    }
+  }
+
+  // const handleDatafromChild = () => {
+  //   setStatus({error: false, message: ""})
+  // };
+
   const actionColumn = [
     {
       field: "action",
@@ -66,12 +139,16 @@ const Datatable = () => {
             style={{ textDecoration: "none" }}>
                 <div className="viewButton">View</div>
             </Link>
-
+            <button 
+              style={{ textDecoration: "none" }}
+              disabled={status.message===LOADING}
+              onClick={e => {handleDelete(e, params.row.id)}}>
             <div
               className="deleteButton"
             >
-              Delete
+                Delete   
             </div>
+            </button>
           </div>
         );
       },
@@ -95,6 +172,9 @@ const Datatable = () => {
         rowsPerPageOptions={[9]}
         checkboxSelection
       />
+      {status.error ? <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/> : null}
+      {(!status.error && status.message=== DELETED_SUCCESS) ? <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/> : null}
+      {(!status.error && status.message === LOADING) ? <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/> : null}
     </div>
   );
 };

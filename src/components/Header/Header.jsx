@@ -18,7 +18,7 @@ const Header = () => {
 
     const handleLogout = () => {
         dispatch(logoutAction());
-        if(title === "admin") dispatch(adminLogout());
+        if(title.toLowerCase() === "admin") dispatch(adminLogout());
         //persistor.purge();
     };
 
@@ -41,7 +41,7 @@ const Header = () => {
             </div>
 
             <div className='header_nav'>
-                {isLogin && title === "admin" ? 
+                {isLogin && title.toLowerCase() === "admin" ? 
                 (
                     <div className='header_nav'>
                         <Link 

@@ -56,7 +56,8 @@ const SingleUser = () => {
                 </div>
                 <div className="detailItem">
                   <span className="itemKey">Joined at:</span>
-                  <span className="itemValue">{(new Date(data.timeStamp.seconds*1000)).toString()}</span>
+                  {console.log(data.timeStamp)}
+                  <span className="itemValue">{data.timeStamp.hasOwnProperty('seconds')?((new Date(data.timeStamp.seconds*1000)).toString()):data.timeStamp}</span>
                 </div>
               </div>
             </div>
