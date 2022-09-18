@@ -17,14 +17,13 @@ import {auth, db, storage} from '../../../firebase.js';
 import { addNewUser } from '../../../Redux/actions/user_action';
 import { useSelector, useDispatch } from "react-redux";
 import { extractErrorMessage } from '../../../utils/extract_function';
-import * as firebase from 'firebase/app'
 
 import './NewUser.scss';
 
 const ADDED_SUCCESS = "Added sucessfully!"
 const NewUser = ({ inputs, title }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [per, setPerc] = useState(null);
   const [file, setFile] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +77,7 @@ const NewUser = ({ inputs, title }) => {
   
       await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
       //console.log("dispatch here");
-      updateNewUserData.timeStamp = myDateTemp;
+      updateNewUserData.timeStamp = myDateTemp.toString();
       dispatch(addNewUser(updateNewUserData));
       setError({status: false, message: ADDED_SUCCESS});
       //navigate(-1)

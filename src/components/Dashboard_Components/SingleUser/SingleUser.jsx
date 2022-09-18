@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import Navbar from '../Navbar/Navbar';
 import TableList from '../Table/Table';
@@ -10,7 +10,7 @@ import avatar from '../../../utils/assets/random_avatar_images.png';
 const SingleUser = () => {
   const location = useLocation();
   const data = location.state.SingledataUser;
-  console.log("url",data.avatarurl);
+  //console.log("data in single user",data);
   return (
     <div className="single">
       <Sidebar />
@@ -18,7 +18,10 @@ const SingleUser = () => {
         <Navbar />
         <div className="top">
           <div className="left">
-            <div className="editButton">Edit</div>
+            <div className="editButton">
+              {/*If we put users/update, this will concat the link, ex:users/:id/users/update*/}
+              <Link to="/users/update" state={{SingledataUser: data}}>Edit</Link>
+            </div>
             <h1 className="title">Information</h1>
             <div className="item">
               <img
@@ -27,7 +30,7 @@ const SingleUser = () => {
                 className="itemImg"
               />
               <div className="details">
-                <h1 className="itemTitle">{data.username}</h1>
+                <h1 className="itemTitle">{data.fullname.length !== 0 ? data.fullname : data.username}</h1>
                 <div className="detailItem">
                   <span className="itemKey">Email:</span>
                   <span className="itemValue">{data.email}</span>
@@ -38,7 +41,7 @@ const SingleUser = () => {
                 </div>
                 <div className="detailItem">
                   <span className="itemKey">Phone:</span>
-                  <span className="itemValue">{data.phone}</span>
+                  <span className="itemValue">{data.phonenumber}</span>
                 </div>
                 <div className="detailItem">
                   <span className="itemKey">Address:</span>
@@ -56,8 +59,8 @@ const SingleUser = () => {
                 </div>
                 <div className="detailItem">
                   <span className="itemKey">Joined at:</span>
-                  {console.log(data.timeStamp)}
-                  <span className="itemValue">{data.timeStamp.hasOwnProperty('seconds')?((new Date(data.timeStamp.seconds*1000)).toString()):data.timeStamp}</span>
+                  {/* {console.log(data.timeStamp)} */}
+                  <span className="itemValue">{data.timeStamp.hasOwnProperty('seconds')?((new Date(data.timeStamp.seconds*1000)).toString()):data.timeStamp.toString()}</span>
                 </div>
               </div>
             </div>

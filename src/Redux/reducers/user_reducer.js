@@ -3,6 +3,7 @@ import {
   ADMIN_LOGOUT,
   ADD_NEW_USER,
   DELETE_USER,
+  UPDATED_SINGLE_USER,
 } from '../actions/types_actions.js';
 
 const initialState = {
@@ -38,6 +39,25 @@ const UserReducer = (state = initialState, action) => {
         return {
           ...state,
           arrayusers: payload.arrayusers,
+          havegetuserfromdb: true,
+        }
+      case UPDATED_SINGLE_USER:
+        var arr = [...(state.arrayusers)];
+        const updatedUser = payload.updatedUser;
+        arr.forEach((obj, index) =>{
+          if(obj.id === updatedUser.id){
+            //console.log("id", updatedUser.id);
+            arr[index] = {
+              ...obj,
+              ...updatedUser,
+            };
+            //console.log("object changed", arr[index]);
+          }
+        })
+        
+        return {
+          ...state,
+          arrayusers: arr,
           havegetuserfromdb: true,
         }
       default:

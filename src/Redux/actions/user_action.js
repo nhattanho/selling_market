@@ -3,6 +3,7 @@ import {
   ADMIN_LOGOUT, 
   ADD_NEW_USER,
   DELETE_USER,
+  UPDATED_SINGLE_USER,
  } from "./types_actions";
 
 /*This action will be an "action argurment" passed into user reducer*/
@@ -41,4 +42,15 @@ const deleteUserForAdmin = (newarrayusers) => {
   }
 }
 
-export { getusersAction, adminLogout, addNewUser, deleteUserForAdmin };
+const updateSingleUser = (updatedUser) => {
+  //console.log("newUserdata from user action", newUserData);
+  return {
+    type: UPDATED_SINGLE_USER,
+    payload: {
+      updatedUser: updatedUser,
+  }
+  }
+}
+export { getusersAction, adminLogout, 
+  addNewUser, deleteUserForAdmin,
+  updateSingleUser };

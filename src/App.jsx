@@ -20,6 +20,7 @@ import ListUser from './components/Dashboard_Components/ListUser/ListUser.jsx';
 import SingleUser from './components/Dashboard_Components/SingleUser/SingleUser.jsx';
 import NewUser from './components/Dashboard_Components/NewUser/NewUser.jsx';
 import { productInputs, userInputs } from "./formSource";
+import UpdateSingleUser from './components/Dashboard_Components/UpdateSingleUser/UpdateSingleUser.jsx';
 
 const App = () => {
   return (
@@ -46,7 +47,11 @@ const App = () => {
                 <Route path="new"
                   element={<NewUser inputs={userInputs} title="Add New User" />}
                 />
+                <Route path="update"
+                  element={<UpdateSingleUser inputs={userInputs} title="Update User" />}
+              />
               </Route>
+              
             </Routes>
           </div>
         </Router>
