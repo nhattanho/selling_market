@@ -192,7 +192,8 @@ const UpdateSingleUser = ({inputs, title}) =>{
                 {status.error ? (
                     <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/>
                 ) : null}
-                {!status.error&& status.message === UPDATED_SUCCESS ? (
+                {!status.error && (status.message === UPDATED_SUCCESS
+                || status.message === NOTHING_CHANGED) ? (
                     <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/>
                 ) : null}
                 {!status.error && status.message === LOADING ? (
