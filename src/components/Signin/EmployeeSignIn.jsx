@@ -1,8 +1,20 @@
-import React from 'react';
-import { useState } from 'react';
-import {auth, provider, db} from '../../firebase.js';
-import {signInWithEmailAndPassword, getRedirectResult, signInWithPopup, GoogleAuthProvider, signInWithRedirect, fetchSignInMethodsForEmail } from "firebase/auth";
+import React, { useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
+import { useSelector, useDispatch } from "react-redux";
+import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
+
+import {auth, provider, db} from '../../firebase.js';
+import {
+  signInWithEmailAndPassword,
+  getRedirectResult, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signInWithRedirect, 
+  fetchSignInMethodsForEmail } 
+from "firebase/auth";
+
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,20 +27,32 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useForm } from "react-hook-form";
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { connectFirestoreEmulator, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+
+import { connectFirestoreEmulator, 
+  serverTimestamp,
+  doc,
+  setDoc } 
+from 'firebase/firestore';
 import { collection, query, where, getDocs } from "firebase/firestore";
+
+import { 
+  EMPLOYEES, 
+  EMAIL, 
+  QUERY_DOC_FROM_DB_FAIL, 
+  NOT_AN_EMPLOYEE,
+} from '../../utils/globalVariable';
+
+import SnackBarModify from '../SnackBar/SnackBar';
+import { LOADING } from '../../utils/globalVariable';
 import {extractErrorMessage} from '../../utils/extract_function';
 import {GoogleIcon} from '../../utils/build_svg_icons';
 import {Crossline} from '../../utils/crossline';
 import './Signin.css';
 
-import { useSelector, useDispatch } from "react-redux";
-import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
 
@@ -68,7 +92,7 @@ const EmployeeSignIn = () => {
   /****************END********************/
 
   /* Used for display wrong email or password message*/
-  const [error, setError] = useState({status: false, message: ""});
+  const [status, setStatus] = useState({error: false, message: ""});
   const [successGoogleLogin, setSuccessGoogleLogin] = useState({status: false, message: ""});
 
   const [loginObject, setLoginObject] = useState({
@@ -76,7 +100,7 @@ const EmployeeSignIn = () => {
     password: '',
   });
   const handleChange = (e) => {
-    setValues({ ...values, clicked: false});
+    setStatus({ ...status, message: ""});
     setLoginObject(loginObject => ({
       ...loginObject,
       [e.target.name]: e.target.value,
@@ -89,15 +113,15 @@ const EmployeeSignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleLogin = (data) =>{
-    console.log("signin normal");
-    setValues({ ...values, clicked: true});
+    setStatus({error: false, message: LOADING});
+    //console.log("signin normal");
     signInWithEmailAndPassword(auth, data.email, data.password)
     .then( (userCredential) => {
       const user = userCredential.user;
       //console.log('user from Authentication DB', user);
       const accessToken = user.accessToken;
       /*Need to query employee DB to make sure this email existed*/
-      const q = query(collection(db, "employees"), where("email", "==", data.email));
+      const q = query(collection(db, EMPLOYEES), where(EMAIL, "==", data.email));
       /********************************************************************************************/
       /* If we want to use await function like below, need to have asyn function for parent function as:
       .then( async (userCredential) => { */
@@ -122,10 +146,12 @@ const EmployeeSignIn = () => {
         });
         //console.log("id", id);
         if(id === "") {
-          console.log("You are not an employee.");
-          setError({...error, status: true, message: "You are not an employee!"});
+          //console.log("You are not an employee.");
+          setStatus({...status, error: true, message: NOT_AN_EMPLOYEE});
         }
         else {
+          //console.log("accout existed");
+          // setStatus({ error: false, message: ""});
           //console.log("your data infor", data);
           /*Adding employee from Dashboard will import accessToken
           and id field for its data by creating an Auth and saving
@@ -147,12 +173,12 @@ const EmployeeSignIn = () => {
           navitage("/");
         }
       }).catch((error) => {
-        setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
+        setStatus({...status, error: true, message: QUERY_DOC_FROM_DB_FAIL});
       });
     })
     .catch((err) => {
       const messageError = extractErrorMessage(err);
-      setError({...error, status: true, message: messageError});
+      setStatus({...status, error: true, message: messageError});
       //console.log("error", error);
     });
   }
@@ -239,7 +265,8 @@ const EmployeeSignIn = () => {
               >
                 Sign In
               </Button>
-              {values.clicked && error.status && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>{error.message}</p>}
+              {!status.error && status.message === LOADING && <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/>}
+              {status.message.length !== 0 && status.error && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>{status.message}</p>}
             </div>
             <Grid container>
               <Grid item xs>

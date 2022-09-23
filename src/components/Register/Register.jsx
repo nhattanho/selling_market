@@ -105,6 +105,10 @@ const Register = () => {
                         timeStamp: serverTimestamp(),
                         accessToken: res.user.accessToken,
                         id: res.user.uid,
+                        level:"beginner",
+                        scores: 0,
+                        avatarurl: "",
+                        address: "",
                     }).then(() => {
                         //console.log("saving done!");
                         setState({...state, checkSaved: true, 

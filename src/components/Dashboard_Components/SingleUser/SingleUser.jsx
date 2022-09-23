@@ -40,6 +40,10 @@ const SingleUser = () => {
                   <span className="itemValue">{data.title}</span>
                 </div>
                 <div className="detailItem">
+                  <span className="itemKey">Professional:</span>
+                  <span className="itemValue">{data.professional}</span>
+                </div>
+                <div className="detailItem">
                   <span className="itemKey">Phone:</span>
                   <span className="itemValue">{data.phonenumber}</span>
                 </div>

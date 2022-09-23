@@ -4,7 +4,7 @@ import { userColumns, userRows } from "./datatablesource.js";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { db } from "../../../firebase";
+import { auth, db } from "../../../firebase";
 import { getDocs, collection, query, 
 where, orderBy, limit, doc, deleteDoc } 
 from "firebase/firestore";
@@ -22,7 +22,36 @@ const Datatable = () => {
   even it doesn't change the value, it will make the useEffect run again
   if the dependent array including state variable like [state]);*/
   const state = useSelector((state) => state.UserReducer);
+  const dataLogin = useSelector((state) => state.AuthReducer.userLoginData);
+  const title = dataLogin.title.toLowerCase();
   const arrayusers = state.arrayusers;
+
+  var AdminManagerlookupuser = [];
+  switch(title){
+    case "admin":
+      AdminManagerlookupuser = 
+        arrayusers.filter(user =>{
+          return user && user.title.toLowerCase() !== "admin"
+        });
+      break;
+    case "manager":
+      AdminManagerlookupuser = 
+        arrayusers.filter(user =>{
+          return (user && 
+                  user.title.toLowerCase() !== "admin" &&
+                  user.title.toLowerCase() !== "manager")
+        });
+      break;
+      default:
+        AdminManagerlookupuser = arrayusers;
+  }
+
+  var exceptAdminUsers = [];
+  if(title === "manager"){
+    exceptAdminUsers = arrayusers.filter(user =>{
+      return user && user.title.toLowerCase() !== "admin"
+    });
+  }
   //console.log("Data table", state);
   const havegetuserfromdb = state.havegetuserfromdb;
   console.log("havegetuserfromdb", havegetuserfromdb);
@@ -62,7 +91,7 @@ const Datatable = () => {
     }
   },[]);
 
-  const handleDelete = async (e, id) => {
+  const handleDelete = (e, id) => {
     e.preventDefault();
     //console.log("id", id);
     //console.log("new array", newarrayusers);
@@ -97,24 +126,28 @@ const Datatable = () => {
           userInFirebaseAuth,
           authCredential,
           );
+          console.log("waiting for deleting Auth DB");
           await deleteUser(result.user);
+          console.log("Deleted Auth DB");
+          /*Deleted from Firestore DB*/
+          await deleteDoc(doc(db, "employees", id));
+          const newarrayusers = arrayusers.filter(user => user.id !== id);
+          dispatch(deleteUserForAdmin(newarrayusers));
+          setStatus({error: false, message: DELETED_SUCCESS});
         } catch(err){
-          console.log(err);
+          console.log("err",err);
+          var errorMessage = extractErrorMessage(err);
+          errorMessage = errorMessage==="" ? DELETED_FAIL : errorMessage;
+          setStatus({error:true, message: errorMessage});
         } 
       })
       .catch((err)=>{
-        console.log(err);
+        console.log("fail in signin",err);
         var errorMessage = extractErrorMessage(err);
         errorMessage = errorMessage==="" ? "Deleted Fail" : errorMessage;
         console.log("err",err);
         setStatus({error:true, message: errorMessage});
       })
-
-      /*Deleted from Firestore DB*/
-      await deleteDoc(doc(db, "employees", id));
-      const newarrayusers = arrayusers.filter(user => user.id !== id);
-      dispatch(deleteUserForAdmin(newarrayusers));
-      setStatus({error: false, message: DELETED_SUCCESS});
     } catch (err) {
       var errorMessage = extractErrorMessage(err);
       errorMessage = errorMessage==="" ? DELETED_FAIL : errorMessage;
@@ -135,8 +168,10 @@ const Datatable = () => {
       renderCell: (params) => {
         return (
           <div className="cellAction">
-            <Link to={`/users/${params.row.id}`} state={{ SingledataUser: params.row}}
-            style={{ textDecoration: "none" }}>
+            <Link to={`/users/${params.row.id}`} 
+              state={{ SingledataUser: params.row}}
+              style={{ textDecoration: "none" }}
+            >
                 <div className="viewButton">View</div>
             </Link>
             <button 
@@ -159,14 +194,15 @@ const Datatable = () => {
         
       <div className="datatableTitle">
         Add New User
-        <Link to="/users/new"  className="link">
+        <Link to="/users/new" 
+          className="link">
           Add New
         </Link>
       </div>
 
       <DataGrid
         className="datagrid"
-        rows={arrayusers}
+        rows={AdminManagerlookupuser}
         columns={userColumns.concat(actionColumn)}
         pageSize={9}
         rowsPerPageOptions={[9]}

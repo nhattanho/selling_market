@@ -1,6 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
+import { useNavigate, useLocation } from "react-router-dom";
+
+import { addNewUser } from '../../../Redux/actions/user_action';
+import { useSelector, useDispatch } from "react-redux";
+
 import IconButton from '@mui/material/IconButton';
 import ErrorIcon from '@mui/icons-material/Error';
 import CloseIcon from '@mui/icons-material/Close';
@@ -9,21 +12,23 @@ import { FormControl, InputLabel, Input, Snackbar, SnackbarContent } from '@mui/
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
+
 import {addDoc,collection,doc,serverTimestamp,setDoc,} from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { useNavigate } from "react-router-dom";
-import {auth, db, storage} from '../../../firebase.js';
-import { addNewUser } from '../../../Redux/actions/user_action';
-import { useSelector, useDispatch } from "react-redux";
-import { extractErrorMessage } from '../../../utils/extract_function';
+import { auth, db, storage} from '../../../firebase.js';
 
+import Navbar from '../Navbar/Navbar';
+import Sidebar from '../Sidebar/Sidebar';
+import { extractErrorMessage } from '../../../utils/extract_function';
+import {getAuth} from "firebase/auth"; 
+import { ADDED_SUCCESS, LOADING } from '../../../utils/globalVariable';
 import './NewUser.scss';
 
-const ADDED_SUCCESS = "Added sucessfully!"
 const NewUser = ({ inputs, title }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  // const navigate = useNavigate();
   const [per, setPerc] = useState(null);
   const [file, setFile] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -57,6 +62,7 @@ const NewUser = ({ inputs, title }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError({status: false, message: LOADING});
     //console.log("new user data", newUserData);
     try {
       const res = await createUserWithEmailAndPassword(
@@ -66,21 +72,69 @@ const NewUser = ({ inputs, title }) => {
       );
       let myDate = new Date();
       let myDateTemp = new Date(myDate);
-      console.log(myDate);
-      
+      //console.log(myDate);
+
       var updateNewUserData = {
         ...newUserData,
         timeStamp: myDateTemp,
         id: res.user.uid,
         accessToken: res.user.accessToken,
       }
-  
-      await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
-      //console.log("dispatch here");
-      updateNewUserData.timeStamp = myDateTemp.toString();
-      dispatch(addNewUser(updateNewUserData));
-      setError({status: false, message: ADDED_SUCCESS});
-      //navigate(-1)
+
+      if(file){
+        const name = new Date().getTime() + file.name;
+        //console.log(name);
+        const storageRef = ref(storage, `avatar/employees/${res.user.uid}/${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        var progress = 0;
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            setPerc(progress);
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+              default:
+                break;
+            }
+          },
+          (error) => {
+            //console.log(error);
+            const messageError = extractErrorMessage(error);
+            setError({status: true, message: messageError});
+          },
+          async () => {
+            console.log("percentage", progress);
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            updateNewUserData.avatarurl = downloadURL;
+            // getDownloadURL(uploadTask.snapshot.ref)
+            // .then(async (downloadURL) => {
+            //   setNewUserData((prev) => ({ ...prev, avatarurl: downloadURL }));
+            // });
+            //console.log("updateNewUser", updateNewUserData);
+            await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
+            //console.log("dispatch here");
+            updateNewUserData.timeStamp = myDateTemp.toString();
+            dispatch(addNewUser(updateNewUserData));
+            // setError({status: false, message: ADDED_SUCCESS});
+            navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
+          }
+        );
+      }else{
+        //console.log("updateNewUser", updateNewUserData);
+        await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
+        //console.log("dispatch here");
+        updateNewUserData.timeStamp = myDateTemp.toString();
+        dispatch(addNewUser(updateNewUserData));
+        setError({status: false, message: ADDED_SUCCESS});
+        navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
+      }
     } catch (err) {
       //console.log(err);
       const messageError = extractErrorMessage(err);
@@ -88,44 +142,44 @@ const NewUser = ({ inputs, title }) => {
     }
   };
 
-  useEffect(() => {
-    const uploadFile = () => {
-      const name = new Date().getTime() + file.name;
-      console.log(name);
-      const storageRef = ref(storage, `avatar/employees/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+  // useEffect(() => {
+    // const uploadFile = () => {
+    //   const name = new Date().getTime() + file.name;
+    //   console.log(name);
+    //   const storageRef = ref(storage, `avatar/employees/${file.name}`);
+    //   const uploadTask = uploadBytesResumable(storageRef, file);
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log("Upload is " + progress + "% done");
-          setPerc(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("Upload is paused");
-              break;
-            case "running":
-              console.log("Upload is running");
-              break;
-            default:
-              break;
-          }
-        },
-        (error) => {
-          //console.log(error);
-          const messageError = extractErrorMessage(error);
-          setError({status: true, message: messageError});
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setNewUserData((prev) => ({ ...prev, avatarurl: downloadURL }));
-          });
-        }
-      );
-    };
-    file && uploadFile();
-  }, [file]);
+    //   uploadTask.on(
+    //     "state_changed",
+    //     (snapshot) => {
+    //       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+    //       console.log("Upload is " + progress + "% done");
+    //       setPerc(progress);
+    //       switch (snapshot.state) {
+    //         case "paused":
+    //           console.log("Upload is paused");
+    //           break;
+    //         case "running":
+    //           console.log("Upload is running");
+    //           break;
+    //         default:
+    //           break;
+    //       }
+    //     },
+    //     (error) => {
+    //       //console.log(error);
+    //       const messageError = extractErrorMessage(error);
+    //       setError({status: true, message: messageError});
+    //     },
+    //     () => {
+    //       getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+    //         setNewUserData((prev) => ({ ...prev, avatarurl: downloadURL }));
+    //       });
+    //     }
+    //   );
+    // };
+  //   file && uploadFile();
+  // }, [file]);
 
   /*Funtions for Snackbars*/
   const errorClose = () => {
@@ -185,8 +239,8 @@ const NewUser = ({ inputs, title }) => {
                   )}
                 </div>
               ))}
-              <button disabled={per !== null && per < 100} type="submit">
-                Send
+              <button type="submit">
+                Add
               </button>
             </form>
           </div>
@@ -221,14 +275,14 @@ const NewUser = ({ inputs, title }) => {
             />
           </Snackbar>
         ) : null}
-        {!error.status && error.message === ADDED_SUCCESS ? (
+        {!error.status && (error.message === ADDED_SUCCESS || error.message===LOADING) ? (
           <Snackbar
               variant="success"
               key={error.message}
               anchorOrigin={{ vertical: "top", horizontal: "center" }}
               open={!error.status}
               onClose={successClose}
-              autoHideDuration={3000}
+              autoHideDuration={5000}
           >
             <SnackbarContent
                 message={

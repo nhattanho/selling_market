@@ -1,19 +1,32 @@
 import React, {useState, useEffect} from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+
+import { useSelector, useDispatch } from "react-redux";
+import { updateSingleUser } from '../../../Redux/actions/user_action';
+
+import { db, auth, storage } from '../../../firebase';
+import { updatePassword } from "firebase/auth";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { doc, updateDoc } from "firebase/firestore";
+
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
-import { UPDATED_SUCCESS, LOADING, UPDATED_DB_FAIL } from '../../../utils/globalVariable';
-import { extractErrorMessage } from '../../../utils/extract_function';
-import { db, auth, storage } from '../../../firebase';
+
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import SnackBarModify from '../../SnackBar/SnackBar';
-import { doc, updateDoc } from "firebase/firestore";
-import { useSelector, useDispatch } from "react-redux";
-import { updateSingleUser } from '../../../Redux/actions/user_action';
+
+import { 
+    UPDATED_SUCCESS, 
+    LOADING, 
+    UPDATED_DB_FAIL,
+    NOTHING_CHANGED, 
+} 
+from '../../../utils/globalVariable';
+import { extractErrorMessage } from '../../../utils/extract_function';
 import avatar from "../../../utils/assets/random_avatar_images.png";
+import SnackBarModify from '../../SnackBar/SnackBar';
+
 import './UpdateSingleUser.scss';
 
 const UpdateSingleUser = ({inputs, title}) =>{
@@ -41,51 +54,54 @@ const UpdateSingleUser = ({inputs, title}) =>{
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setStatus({error: false, message: LOADING});
-        /*Update firestore DB*/
-        const changedProps = [];
-        var updatedObject = {};
-        var passwordChanged = false;
-        Object.keys(preData).forEach((prop)=> {
-            if(data.hasOwnProperty(prop)){
-                if(data[prop] !== preData[prop]){
-                    if(prop === "password") passwordChanged = true;
-                    changedProps.push(prop);
-                }      
-            }
-        });
-        if(changedProps.length !== 0){
-            const updateRef = doc(db, "employees", data.id);
-            changedProps.forEach((prop, index)=>{
-                updatedObject[prop] = data[prop];
+        if(data.password.length < 6) setStatus({error: true, message: "Password has at least 6 characters!"});
+        else {
+            setStatus({error: false, message: LOADING});
+            /*Update firestore DB*/
+            const changedProps = [];
+            var updatedObject = {};
+            var passwordChanged = false;
+            Object.keys(preData).forEach((prop)=> {
+                if(data.hasOwnProperty(prop)){
+                    if(data[prop] !== preData[prop]){
+                        if(prop === "password") passwordChanged = true;
+                        changedProps.push(prop);
+                    }      
+                }
             });
-            try {
+            if(changedProps.length !== 0){
+                changedProps.forEach((prop, index)=>{
+                    updatedObject[prop] = data[prop];
+                });
+                const updateRef = doc(db, "employees", data.id);
                 /*Update Authentication password*/
-
-                //console.log(updatedObject);
-                await updateDoc(updateRef, {
-                ...updatedObject,});
-                 /*Update global state*/
-                updatedObject = {
+                try {
+                    /*Actual Updated firestore DB*/
+                    console.log("update firestore DB");
+                    await updateDoc(updateRef, {...updatedObject,});
+                    updatedObject = {
                     ...updatedObject,
                     id: data.id,
-                }
-                dispatch(updateSingleUser(updatedObject));
-                //console.log("passed dispatch");
-                /*Navigate to Single user*/
-                setStatus({error: false, message: UPDATED_SUCCESS});
-            }catch(err){
-                setStatus({error: true, message: UPDATED_DB_FAIL});
-            }  
+                    };
+                    /*Update global state*/
+                    dispatch(updateSingleUser(updatedObject));
+                    setStatus({error: false, message: UPDATED_SUCCESS});
+                    navigate(`/users/${data.id}`, {state: {SingledataUser: data}});
+                }catch(err) {
+                    setStatus({error: true, message: UPDATED_DB_FAIL});
+                }   
+            }else {
+                console.log("Nothing changed!");
+                setStatus({error: false, message: NOTHING_CHANGED});
+            }
         }
-        navigate(`/users/${data.id}`, {state: {SingledataUser: data}});
     };
 
     useEffect(() => {
         const uploadFile = () => {
         const name = new Date().getTime() + file.name;
         console.log(name);
-        const storageRef = ref(storage, `avatar/employees/${file.name}`);
+        const storageRef = ref(storage, `avatar/employees/${data.id}/${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
     
         uploadTask.on(
@@ -155,27 +171,17 @@ const UpdateSingleUser = ({inputs, title}) =>{
                                 />
                             </div>
 
-                            {inputs.map((input) => (
-                                <div className="formInput" key={input.id}>
-                                <label>{input.label}</label>
-                                {input.type!=="password"?(
+                            {inputs.map((ip) => (
+                                <div className="formInput" key={ip.id}>
+                                    <label>{ ip.label}</label>
                                     <input 
-                                        value={data[input.name]} 
-                                        name={input.name} 
-                                        type={input.type} 
+                                        value={data[ip.name]} 
+                                        name={ip.name} 
+                                        type={ip.type} 
                                         onInput={handleChange} 
-                                        disabled={input.type==="mail"?true:false}
+                                        disabled={(ip.type === "password" || ip.type==="mail" || ip.name==="username")?true:false}
                                     />
-                                ):
-                                (
-                                    <div className='showpassword'>
-                                        <input value={data[input.name]} name={input.name} type={showPassword ? "text" : "password"} onInput={handleChange}/>
-                                        <button onClick={(e) => {handleShowPassword(e)}}>
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </button>
-                                    </div>
-                                )}
-                                </div>
+                                </div> 
                             ))}
                             <button disabled={per !== null && per < 100} type="submit">
                                 Update

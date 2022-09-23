@@ -15,10 +15,10 @@ const Header = () => {
     const isLogin = state.isLogin;
     var {username, title} = (state.hasOwnProperty('userLoginData')) ? state.userLoginData : "";
     //console.log("userreducer", userreducer);
-
+    title = title.toLowerCase();
     const handleLogout = () => {
         dispatch(logoutAction());
-        if(title.toLowerCase() === "admin") dispatch(adminLogout());
+        if(title === "admin"|| title === "manager") dispatch(adminLogout());
         //persistor.purge();
     };
 
@@ -41,7 +41,7 @@ const Header = () => {
             </div>
 
             <div className='header_nav'>
-                {isLogin && title.toLowerCase() === "admin" ? 
+                {isLogin && (title.toLowerCase() === "admin" || title.toLowerCase() === "manager") ? 
                 (
                     <div className='header_nav'>
                         <Link 
@@ -53,7 +53,7 @@ const Header = () => {
                         >
                             <div className='header_option'>
                                 <span className='header_option_line1'>
-                                    Admin
+                                    {title==="admin"?"Admin":"Manager"}
                                 </span>
                                 <span className='header_option_line2'>
                                     Dashboard

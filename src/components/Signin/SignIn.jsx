@@ -168,6 +168,7 @@ const SignIn = () => {
             */
           /**************************************************/
         }
+        setError({...error, status: false, message: ""});
         setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
         navitage("/");
       }).catch((error) => {

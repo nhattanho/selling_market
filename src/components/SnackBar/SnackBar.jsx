@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+
+import { useNavigate } from 'react-router-dom';
+
 import { 
     FormControl, 
     InputLabel, 
@@ -10,15 +13,19 @@ import IconButton from '@mui/material/IconButton';
 import ErrorIcon from '@mui/icons-material/Error';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { LOADING, } from '../../utils/globalVariable';
+
+import { LOADING, LOGIN_AGAIN } from '../../utils/globalVariable';
 /*They way to get value from the Child back to Parent Component*/
 /*https://stackoverflow.com/questions/38394015/how-to-pass-data-from-child-component-to-its-parent-in-reactjs*/
 const SnackBarModify = (props) => {
-    console.log("go to snack");
+    const navigate = useNavigate();
     const {error, message} = props.status;
+
     const [status, setStatusChild] = useState({error: error, message: message});
     
     const errorClose = () => {
+        if(status.message === LOGIN_AGAIN) 
+            navigate('/signin')
         setStatusChild({error: false, message: ""});
         props.getbackdatafromSnackBar({error: false, message: ""});
     };

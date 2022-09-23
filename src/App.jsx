@@ -1,10 +1,9 @@
 import React from 'react';
+import { PersistGate } from 'redux-persist/integration/react';
+import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import {store, persistor} from './Redux/store/store.js';
 import {Provider} from "react-redux";
-import { PersistGate } from 'redux-persist/integration/react'
 
-import './App.css';
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import Home from './pages/Home/Home.jsx';
 import CheckOut from './components/CheckOut/CheckOut.jsx';
 import NotFound from './components/NotFound/NotFound.jsx';
@@ -19,8 +18,10 @@ import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import ListUser from './components/Dashboard_Components/ListUser/ListUser.jsx';
 import SingleUser from './components/Dashboard_Components/SingleUser/SingleUser.jsx';
 import NewUser from './components/Dashboard_Components/NewUser/NewUser.jsx';
-import { productInputs, userInputs } from "./formSource";
 import UpdateSingleUser from './components/Dashboard_Components/UpdateSingleUser/UpdateSingleUser.jsx';
+
+import { productInputs, userInputs } from "./formSource";
+import './App.css';
 
 const App = () => {
   return (
@@ -33,7 +34,7 @@ const App = () => {
               <Route exact path="/signin" element={<SignIn />} />
               <Route exact path="/signinasemployee" element={<EmployeeSignIn />} />
               <Route exact path="/orders" element={<Orders />} />
-              <Route exact path="/account" element={<Account />} />
+              <Route exact path="/account" element={<Account inputs={userInputs} title="Your Information"/>} />
               <Route exact path="/cart" element={<Cart />} />
               <Route exact path="/checkout" element={<CheckOut />} />
               <Route exact path="*" element={<NotFound />} />
@@ -49,7 +50,7 @@ const App = () => {
                 />
                 <Route path="update"
                   element={<UpdateSingleUser inputs={userInputs} title="Update User" />}
-              />
+                />
               </Route>
               
             </Routes>

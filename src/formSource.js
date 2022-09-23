@@ -51,11 +51,18 @@ export const userInputs = [
       id: 8,
       label: "Title",
       type: "text",
-      placeholder: "Accounting",
+      placeholder: "Admin/Manager/Employee",
       name: "title"
     },
     {
       id: 9,
+      label: "Professional",
+      type: "text",
+      placeholder: "Accounting/Shipper/Manager",
+      name: "professional"
+    },
+    {
+      id: 10,
       label: "Status",
       type: "text",
       placeholder: "Active",
