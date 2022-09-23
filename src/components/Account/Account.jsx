@@ -42,6 +42,7 @@ const Account = ({inputs, title}) => {
   const state = useSelector((state) => state.AuthReducer);
   const preData = state.hasOwnProperty('userLoginData') ? state.userLoginData : {};
   const [data, setUserData] = useState(preData);
+  console.log("data in account",data);
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState({error: false, message: ""});
   const [per, setPerc] = useState(null);

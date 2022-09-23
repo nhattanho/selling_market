@@ -14,7 +14,8 @@ export const EMPLOYEE = "employee";
 export const EMAIL = "email";
 export const TITLE = "title";
 export const STATUS ="status";
-export const PROFESSIONAL = "professional"
+export const PROFESSIONAL = "professional";
+export const BUYER = "buyer";
 
 export const REQUIRE_RECENT_LOGIN = "auth/requires-recent-login";
 export const LOGIN_AGAIN = "To protect your account, please sign in again!"

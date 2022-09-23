@@ -1,8 +1,20 @@
-import React from 'react';
-import { useState } from 'react';
-import {auth, provider, db} from '../../firebase.js';
-import {signInWithEmailAndPassword, getRedirectResult, signInWithPopup, GoogleAuthProvider, signInWithRedirect, fetchSignInMethodsForEmail } from "firebase/auth";
+import React, { useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
+import { useSelector, useDispatch } from "react-redux";
+import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
+
+import {auth, provider, db} from '../../firebase.js';
+import {
+  signInWithEmailAndPassword, 
+  getRedirectResult, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signInWithRedirect, 
+  fetchSignInMethodsForEmail } 
+from "firebase/auth";
+
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,20 +27,26 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useForm } from "react-hook-form";
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { connectFirestoreEmulator, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+
+import { 
+  connectFirestoreEmulator, 
+  serverTimestamp, 
+  doc, 
+  setDoc } 
+from 'firebase/firestore';
 import { collection, query, where, getDocs } from "firebase/firestore";
+
 import {extractErrorMessage} from '../../utils/extract_function';
 import {GoogleIcon} from '../../utils/build_svg_icons';
 import {Crossline} from '../../utils/crossline';
+import { LOADING } from '../../utils/globalVariable';
+
 import './Signin.css';
 
-import { useSelector, useDispatch } from "react-redux";
-import {loginAction, logoutAction} from '../../Redux/actions/auth_action';
 /*pattern for password: pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/ */
 /*https://www.freecodecamp.org/news/add-form-validation-in-react-app-with-react-hook-form/*/
 
@@ -90,7 +108,7 @@ const SignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleLoginWithGoogle = async () => {
-    //console.log("signin google");
+    setSuccessGoogleLogin({status: false, message: LOADING});
     signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a Google Access Token. You can use it to access the Google API.
@@ -102,7 +120,7 @@ const SignIn = () => {
       const username = email.split('@')[0];
       const uid = user.uid;
       const q = query(collection(db, "customers"), where("email", "==", email));
-      console.log("uid", uid);
+      //console.log("uid", uid);
       getDocs(q)
       .then((querySnapshot) => {
         var id = ""; 
@@ -126,7 +144,10 @@ const SignIn = () => {
             //console.log("Login done! Going home page...");
             //console.log("write new email into DB");
             /* Dispatch user data here */
+            //console.log("userData", userData);
             dispatch(loginAction(userData));
+            setError({...error, status: false, message: ""});
+            setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
           })
           .catch((error) => {
               console.log(error);
@@ -135,12 +156,14 @@ const SignIn = () => {
         }
         else {
           /* Email has already existed so no need to write DB again */
-          console.log("Dont write new email into DB");
+          //console.log("Dont write new email into DB");
           const userData = {
             ...data,
           };
           dispatch(loginAction(userData));
-          console.log("userData by Google login", userData);
+          //console.log("userData by Google login", userData);
+          setError({...error, status: false, message: ""});
+          setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
           /* Dispatch userData here */
           /* Testing for rewrite again for existed document ==> automatically 
           overwrite or removed the existed fields and update for the new fields
@@ -168,9 +191,6 @@ const SignIn = () => {
             */
           /**************************************************/
         }
-        setError({...error, status: false, message: ""});
-        setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
-        navitage("/");
       }).catch((error) => {
         setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
       });
@@ -249,6 +269,8 @@ const SignIn = () => {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {!successGoogleLogin.status && successGoogleLogin.message === LOADING 
+            && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p>}
           {successGoogleLogin.status && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p> && <p>{ navitage("/")} </p>}
           <Box component="form" onSubmit={handleSubmit(handleLogin)} sx={{ mt: 1 }}>
             <TextField

@@ -10,6 +10,7 @@ const AuthReducer = (state = initialState, action) => {
     const {payload, type} = action;
     switch (type) {
       case LOGIN:
+        //console.log("in auth reducer, user data", payload.userLoginData);
         return {
           isLogin: true,
           userLoginData: payload.userLoginData,

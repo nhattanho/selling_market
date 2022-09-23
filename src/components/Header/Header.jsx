@@ -1,12 +1,17 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import './Header.css';
-import SearchIcon from '@mui/icons-material/Search';
-import Button from '@mui/material/Button';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+
 import { useSelector, useDispatch } from "react-redux";
 import {logoutAction} from '../../Redux/actions/auth_action';
 import {adminLogout} from '../../Redux/actions/user_action';
+
+import SearchIcon from '@mui/icons-material/Search';
+import Button from '@mui/material/Button';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+
+import { BUYER } from '../../utils/globalVariable';
+
+import './Header.css';
 
 const Header = () => {
     const dispatch = useDispatch();
@@ -76,7 +81,7 @@ const Header = () => {
                             </div>
                         </Link>
 
-                        <Link to='/account' style={{textDecoration: 'none'}}>
+                        <Link to={title!==BUYER ?'/account':'/customeraccount'} style={{textDecoration: 'none'}}>
                             <div className='header_option'>
                                 <span className='header_option_line1'>
                                     Your

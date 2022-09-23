@@ -19,6 +19,7 @@ import ListUser from './components/Dashboard_Components/ListUser/ListUser.jsx';
 import SingleUser from './components/Dashboard_Components/SingleUser/SingleUser.jsx';
 import NewUser from './components/Dashboard_Components/NewUser/NewUser.jsx';
 import UpdateSingleUser from './components/Dashboard_Components/UpdateSingleUser/UpdateSingleUser.jsx';
+import CustomerAccount from './components/Account/CustomerAccount.jsx';
 
 import { productInputs, userInputs } from "./formSource";
 import './App.css';
@@ -41,7 +42,8 @@ const App = () => {
               <Route exact path="/forgotPassword" element={<Forgot />} />
               <Route exact path="/register" element={<Register />} />
               <Route exact path="/dashboard" element={<Dashboard />} />
-              
+              <Route exact path="/customeraccount" element={<CustomerAccount />} />
+
               <Route path="users">
                 <Route index element={<ListUser />} />
                 <Route path=":userId" element={<SingleUser />} />
