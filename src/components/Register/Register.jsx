@@ -1,23 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
+import {  useDispatch } from "react-redux";
+import { loginAction } from "../../Redux/actions/auth_action";
+
+import { doc, serverTimestamp, setDoc } from "firebase/firestore"; 
+import {db, auth} from '../../firebase';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+
 import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
 import PeopleAltIcon from '@mui/icons-material/People';
-import { Avatar, Button, TextField, Grid, Box, Container } from '@mui/material';
-import { FormControl, InputLabel, Input, Snackbar, SnackbarContent } from '@mui/material';
+import { 
+    Avatar, 
+    Button, 
+    TextField, 
+    Grid, 
+    Box, 
+    Container } 
+from '@mui/material';
+import { 
+    FormControl, 
+    InputLabel, 
+    Input, 
+    Snackbar, 
+    SnackbarContent } 
+from '@mui/material';
 import ErrorIcon from '@mui/icons-material/Error';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CloseIcon from '@mui/icons-material/Close';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useForm } from "react-hook-form";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore"; 
-import {db, auth} from '../../firebase';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
 import {extractErrorMessage} from '../../utils/extract_function';
+import { BUYER, CUSTOMERS, LOADING, REGISTER_SUCCESS, SAVED_DB_FAIL } from "../../utils/globalVariable";
+
 import './register.css';
 
 function Copyright(props) {
@@ -32,6 +53,8 @@ function Copyright(props) {
 
 const Register = () => {
     const theme = createTheme();
+    const navitage = useNavigate();
+    const dispatch = useDispatch();
     const [state, setState] = useState({
         email: "",
         password: "",
@@ -75,16 +98,20 @@ const Register = () => {
     const errorClose = e => {
         setState({
             ...state,
-            errorOpen: false
-        });
-    };
-    const navitage = useNavigate();
-    const successClose = e => {
-        setState({
-            ...state,
+            errorOpen: false,
             checkSaved: false,
         });
-        navitage("/signin")
+    };
+    
+    const successClose = e => {
+        if(state.success === REGISTER_SUCCESS){
+            setState({
+                ...state,
+                error: null,
+                checkSaved: false,
+            });
+            navitage("/signin")
+        }
     }
     /****************END********************/
 
@@ -92,47 +119,52 @@ const Register = () => {
         // console.log("state", state);
         // console.log("errors", errors);
         if (checkPassword()){
+            setState({...state, error: null, checkSaved: true, 
+                success: LOADING});
             try {
-                    /*Could not create a new user with email used already in Authentication store*/
-                    const res = await createUserWithEmailAndPassword(auth, state.email, state.password);
-                    //console.log("res", res);
-                    const username = state.email.split('@')[0];
-                    setDoc(doc(db, "customers", res.user.uid), {
-                        email: state.email,
-                        username: username,
-                        password: state.password,
-                        title: "buyer",
-                        timeStamp: serverTimestamp(),
-                        accessToken: res.user.accessToken,
-                        id: res.user.uid,
-                        level:"beginner",
-                        scores: 0,
-                        avatarurl: "",
-                        address: "",
-                    }).then(() => {
-                        //console.log("saving done!");
-                        setState({...state, checkSaved: true, 
-                        success: "Successfully!, Going to SignIn..."});
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        setState({
-                            ...state,
-                            errorOpen: true,
-                            error: "Couldn't not save data in DB!"
-                          });
-                    });
+                /*Could not create a new user with email used already in Authentication store*/
+                const res = await createUserWithEmailAndPassword(auth, state.email, state.password);
+                //console.log("res", res);
+                const username = state.email.split('@')[0];
+                const userData = {
+                    email: state.email,
+                    username: username,
+                    password: state.password,
+                    title: BUYER,
+                    timeStamp: serverTimestamp(),
+                    accessToken: res.user.accessToken,
+                    id: res.user.uid,
+                    level:"beginner",
+                    scores: 0,
+                    avatarurl: "",
+                    address: "",
+                }
+                setDoc(doc(db, CUSTOMERS, res.user.uid), userData).then(() => {
+                    //console.log("saving done!");
+                    dispatch(loginAction(userData));
+                    setState({...state, error: null, checkSaved: true, 
+                    success: REGISTER_SUCCESS});
+                })
+                .catch((error) => {
+                    console.log(error);
+                    setState({
+                        ...state,
+                        errorOpen: true,
+                        checkSaved: false,
+                        error: SAVED_DB_FAIL,
+                        });
+                });
             } catch(error){
                 /* messageError = error.substring(error.indexOf(' ') + 1); */
                 var messageError = extractErrorMessage(error);
                 setState({
                     ...state,
                     errorOpen: true,
+                    checkSaved: false,
                     error: messageError,
                 });
             }
         }
-        //dispath to userActions
     };
 
     return (

@@ -82,7 +82,7 @@ const Datatable = () => {
           };
           users.push(data);
         });
-        console.log("users in DataTable component", users);
+        //console.log("users in DataTable component", users);
         /*Dispatch users here*/
         dispatch(getusersAction(users));
       }).catch(err => {

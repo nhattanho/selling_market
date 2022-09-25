@@ -1,15 +1,20 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
+
 import Sidebar from '../Sidebar/Sidebar';
 import Navbar from '../Navbar/Navbar';
 import TableList from '../Table/Table';
 import Chart from '../Chart/Chart';
+
 import './SingleUser.scss';
 import avatar from '../../../utils/assets/random_avatar_images.png';
 
 const SingleUser = () => {
   const location = useLocation();
-  const data = location.state.SingledataUser;
+  var data = location.state.SingledataUser;
+  if(data.hasOwnProperty("title")) data.title = data.title.replace(/^./, data.title[0].toUpperCase());
+  if(data.hasOwnProperty("status")) data.status = data.status.replace(/^./, data.status[0].toUpperCase());
+  if(data.hasOwnProperty("professional")) data.professional = data.professional.replace(/^./, data.professional[0].toUpperCase());
   //console.log("data in single user",data);
   return (
     <div className="single">

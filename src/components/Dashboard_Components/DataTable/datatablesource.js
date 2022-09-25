@@ -21,9 +21,16 @@ export const userColumns = [
     },
   
     {
-      field: "age",
-      headerName: "Age",
-      width: 100,
+      field: "professional",
+      headerName: "Professional",
+      width: 140,
+      renderCell: (params) => {
+        return (
+          <div className={`cellWithStatus ${params.row.professional.toLowerCase()}`}>
+            {params.row.professional.replace(/^./, params.row.professional[0].toUpperCase())}
+          </div>
+        );
+      },
     },
     {
       field: "status",

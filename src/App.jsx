@@ -21,7 +21,12 @@ import NewUser from './components/Dashboard_Components/NewUser/NewUser.jsx';
 import UpdateSingleUser from './components/Dashboard_Components/UpdateSingleUser/UpdateSingleUser.jsx';
 import CustomerAccount from './components/Account/CustomerAccount.jsx';
 
-import { productInputs, userInputs } from "./formSource";
+import { 
+  productInputs, 
+  userInputs, 
+  customerInputs } 
+from "./formSource";
+
 import './App.css';
 
 const App = () => {
@@ -42,7 +47,7 @@ const App = () => {
               <Route exact path="/forgotPassword" element={<Forgot />} />
               <Route exact path="/register" element={<Register />} />
               <Route exact path="/dashboard" element={<Dashboard />} />
-              <Route exact path="/customeraccount" element={<CustomerAccount />} />
+              <Route exact path="/customeraccount" element={<CustomerAccount inputs={customerInputs} title="Your Information"/>} />
 
               <Route path="users">
                 <Route index element={<ListUser />} />

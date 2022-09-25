@@ -28,10 +28,15 @@ import {
   PROFESSIONAL,
   REQUIRE_RECENT_LOGIN,
   LOGIN_AGAIN,
+  MANAGER,
+  ADMIN,
+  MAIL,
+  USERNAME,
 } from '../../utils/globalVariable';
 import avatar from '../../utils/assets/random_avatar_images.png';
 import { extractErrorMessage } from '../../utils/extract_function';
 import SnackBarModify from '../SnackBar/SnackBar';
+import { DropdownButtonForUpdateUser } from '../DropdownButton/DropdownButton';
 
 import './Account.scss';
 
@@ -42,7 +47,7 @@ const Account = ({inputs, title}) => {
   const state = useSelector((state) => state.AuthReducer);
   const preData = state.hasOwnProperty('userLoginData') ? state.userLoginData : {};
   const [data, setUserData] = useState(preData);
-  console.log("data in account",data);
+  //console.log("data in account",data);
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState({error: false, message: ""});
   const [per, setPerc] = useState(null);
@@ -203,7 +208,27 @@ const Account = ({inputs, title}) => {
                   <div className="formInput" key={input.id}>
                     <label>{input.label}</label>
                     {input.type!=="password"?(
-                      <input 
+                      (data.title.toLowerCase() === MANAGER 
+                      || data.title.toLowerCase() === ADMIN)?
+                      (
+                        (input.options.length !== 0 ? (
+                          <DropdownButtonForUpdateUser 
+                            value={data[input.name]} 
+                            name={input.name} 
+                            options={input.options} 
+                            onChange={handleChange}
+                          />
+                        ):(
+                          <input 
+                            value={data[input.name]} 
+                            name={input.name} 
+                            type={input.type} 
+                            onInput={handleChange} 
+                          />
+                        ))
+                      ):
+                      (
+                        <input 
                           value={data[input.name]} 
                           name={input.name} 
                           type={input.type} 
@@ -213,10 +238,11 @@ const Account = ({inputs, title}) => {
                             (input.name === TITLE ||
                             input.name === STATUS ||
                             input.name === PROFESSIONAL)) ||
-                            input.type==="mail" || 
-                            input.name==="username")
+                            input.type=== MAIL || 
+                            input.name=== USERNAME)
                             ?true:false}
-                      />
+                        />
+                      )
                     ):
                     (
                       <div className='showpassword'>

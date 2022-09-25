@@ -26,6 +26,8 @@ from '../../../utils/globalVariable';
 import { extractErrorMessage } from '../../../utils/extract_function';
 import avatar from "../../../utils/assets/random_avatar_images.png";
 import SnackBarModify from '../../SnackBar/SnackBar';
+import {DropdownButtonForUpdateUser}
+from '../../DropdownButton/DropdownButton';
 
 import './UpdateSingleUser.scss';
 
@@ -37,6 +39,7 @@ const UpdateSingleUser = ({inputs, title}) =>{
     const location = useLocation();
     const preData = location.state.SingledataUser;
     const [data, setUpdateData] = useState(location.state.SingledataUser);
+    //console.log("data in update single user",data)
     const [status, setStatus] = useState({error: false, message: ""});
 
     const handleChange = (e) => {
@@ -75,9 +78,13 @@ const UpdateSingleUser = ({inputs, title}) =>{
                 });
                 const updateRef = doc(db, "employees", data.id);
                 /*Update Authentication password*/
+                /*
+                    No need to update Auth password, since the
+                    admin/manager could not see the user's password
+                */
                 try {
                     /*Actual Updated firestore DB*/
-                    console.log("update firestore DB");
+                    //console.log("update firestore DB");
                     await updateDoc(updateRef, {...updatedObject,});
                     updatedObject = {
                     ...updatedObject,
@@ -171,16 +178,30 @@ const UpdateSingleUser = ({inputs, title}) =>{
                                 />
                             </div>
 
-                            {inputs.map((ip) => (
-                                <div className="formInput" key={ip.id}>
-                                    <label>{ ip.label}</label>
-                                    <input 
-                                        value={data[ip.name]} 
-                                        name={ip.name} 
-                                        type={ip.type} 
-                                        onInput={handleChange} 
-                                        disabled={(ip.type === "password" || ip.type==="mail" || ip.name==="username")?true:false}
-                                    />
+                            {inputs.map((input) => (
+                                <div className="formInput" key={input.id}>
+                                    <label>{ input.label}</label>
+                                    {input.options.length !== 0?(
+                                        <DropdownButtonForUpdateUser 
+                                            value={data[input.name]} 
+                                            name={input.name} 
+                                            options={input.options} 
+                                            onChange={handleChange}
+                                        />
+                                    ):
+                                    (
+                                        <input 
+                                            value={data[input.name]} 
+                                            name={input.name} 
+                                            type={input.type} 
+                                            onInput={handleChange} 
+                                            disabled={
+                                                (input.type === "password" || 
+                                                input.type==="mail" || 
+                                                input.name==="username")
+                                                ?true:false}
+                                        />
+                                    )}   
                                 </div> 
                             ))}
                             <button disabled={per !== null && per < 100} type="submit">

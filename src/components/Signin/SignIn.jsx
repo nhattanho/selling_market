@@ -43,7 +43,15 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import {extractErrorMessage} from '../../utils/extract_function';
 import {GoogleIcon} from '../../utils/build_svg_icons';
 import {Crossline} from '../../utils/crossline';
-import { LOADING } from '../../utils/globalVariable';
+import { 
+  BUYER, 
+  CUSTOMERS, 
+  EMAIL, 
+  LOADING, 
+  LOGIN_SUCCESS, 
+  NEED_AN_ACCOUNT, 
+  QUERY_DOC_FROM_DB_FAIL, 
+  SAVED_DB_FAIL } from '../../utils/globalVariable';
 
 import './Signin.css';
 
@@ -80,13 +88,14 @@ const SignIn = () => {
     email: '',
     password: '',
   });
+
   const handleChange = (e) => {
     setValues({ ...values, clicked: false});
     setLoginObject(loginObject => ({
       ...loginObject,
       [e.target.name]: e.target.value,
     }));
-    console.log("login clicked",values.clicked);
+    //console.log("login clicked",values.clicked);
   };
   /*********************END****************************/
 
@@ -109,6 +118,7 @@ const SignIn = () => {
 
   const handleLoginWithGoogle = async () => {
     setSuccessGoogleLogin({status: false, message: LOADING});
+    setError({...error, status: false, message: ""});
     signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a Google Access Token. You can use it to access the Google API.
@@ -119,7 +129,7 @@ const SignIn = () => {
       const email = user.email;
       const username = email.split('@')[0];
       const uid = user.uid;
-      const q = query(collection(db, "customers"), where("email", "==", email));
+      const q = query(collection(db, CUSTOMERS), where(EMAIL, "==", email));
       //console.log("uid", uid);
       getDocs(q)
       .then((querySnapshot) => {
@@ -135,23 +145,32 @@ const SignIn = () => {
             email: email,
             username: username,
             password:"",
-            title: "buyer",
+            title: BUYER,
             timeStamp: serverTimestamp(),
             accessToken: accessToken,
             id: uid,
           };
-          setDoc(doc(db, "customers", user.uid), userData).then(() => {
+          setDoc(doc(db, CUSTOMERS, user.uid), userData).then(() => {
             //console.log("Login done! Going home page...");
             //console.log("write new email into DB");
             /* Dispatch user data here */
             //console.log("userData", userData);
             dispatch(loginAction(userData));
-            setError({...error, status: false, message: ""});
-            setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
+            //setError({...error, status: false, message: ""});
+            setSuccessGoogleLogin(
+              {...successGoogleLogin, 
+                status: true, 
+                message: LOGIN_SUCCESS,
+            });
+            navitage("/");
           })
           .catch((error) => {
               console.log(error);
-              setError({...error, status: true, message: "Couldn't not save data in DB!"});
+              setSuccessGoogleLogin({
+                  ...successGoogleLogin, 
+                  status: false, 
+                  message: SAVED_DB_FAIL,
+              });
           });
         }
         else {
@@ -162,8 +181,9 @@ const SignIn = () => {
           };
           dispatch(loginAction(userData));
           //console.log("userData by Google login", userData);
-          setError({...error, status: false, message: ""});
-          setSuccessGoogleLogin({...successGoogleLogin, status: true, message: "Login done! Going home page..."});
+          //setError({...error, status: false, message: ""});
+          setSuccessGoogleLogin({...successGoogleLogin, status: true, message: LOGIN_SUCCESS});
+          navitage("/");
           /* Dispatch userData here */
           /* Testing for rewrite again for existed document ==> automatically 
           overwrite or removed the existed fields and update for the new fields
@@ -192,7 +212,12 @@ const SignIn = () => {
           /**************************************************/
         }
       }).catch((error) => {
-        setError({...error, status: true, message: "Coundn't get document from customer's DB!"});
+          setSuccessGoogleLogin({
+            ...successGoogleLogin, 
+            status: false, 
+            message: QUERY_DOC_FROM_DB_FAIL,
+          });
+        //setError({...error, status: false, message: ""});
       });
       
     }).catch((error) => {
@@ -204,13 +229,19 @@ const SignIn = () => {
       // The AuthCredential type that was used.
       const credential = GoogleAuthProvider.credentialFromError(error);
       const messageError = extractErrorMessage(error);
-      setError({...error, status: true, message: messageError});
+      setSuccessGoogleLogin({
+        ...successGoogleLogin, 
+        status: false, 
+        message: messageError,
+      });
+      //setError({...error, status: false, message: ""});
     });
   }
 
   const handleLogin = (data) =>{
     //console.log("signin normal");
     setValues({ ...values, clicked: true});
+    setError({...error, status: false, message: LOADING});
     var id = "";
     var userData = {};
     signInWithEmailAndPassword(auth, data.email, data.password)
@@ -219,7 +250,7 @@ const SignIn = () => {
       //console.log('user', user);
       const accessToken = user.accessToken;
       /*Need to query customer DB to make sure this email existed and dispatch*/
-      const q = query(collection(db, "customers"), where("email", "==", data.email));
+      const q = query(collection(db, CUSTOMERS), where(EMAIL, "==", data.email));
       try {
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
@@ -227,25 +258,25 @@ const SignIn = () => {
           userData = doc.data();
         });
         if(id === "") {
-          console.log("You need to create an account first!");
-          setError({...error, status: true, message: "You need to create an account first!"});
+          //console.log("You need to create an account first!");
+          setError({...error, status: true, message: NEED_AN_ACCOUNT});
         }
         else {
-          setError({...error, status: false, message: ""});
           //console.log('user data', userData);
           /* Dispatch user information here */
           dispatch(loginAction(userData));
+          setError({...error, status: false, message: ""});
           navitage("/");
         }
-      } catch (e ){
-          console.log("Error getting cached document:", e);
+      } catch (err){
+        const messageError = extractErrorMessage(err);
+        setError({...error, status: true, message: messageError});
       };
     })
     .catch((err) => {
-      console.log("error code", err);
+      //console.log("error code", err);
       const messageError = extractErrorMessage(err);
       setError({...error, status: true, message: messageError});
-      //console.log("error", error);
     });
   }
   /******************END*******************/
@@ -269,9 +300,26 @@ const SignIn = () => {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          {!successGoogleLogin.status && successGoogleLogin.message === LOADING 
-            && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p>}
-          {successGoogleLogin.status && <p style={{color:'green',border:'1px solid green' }}>{successGoogleLogin.message}</p> && <p>{ navitage("/")} </p>}
+          {!successGoogleLogin.status && 
+            successGoogleLogin.message === LOADING && 
+            <p style={{color:'green',border:'1px solid green' }}>
+              {successGoogleLogin.message}</p>}
+          
+          {!successGoogleLogin.status && 
+            successGoogleLogin.message !== LOADING && 
+            <p style={{color:'red',border:'1px solid green' }}>
+            {successGoogleLogin.message}</p>}
+          
+          {!error.status && 
+              error.message === LOADING && 
+              <p style={{color:'green',border:'1px solid red' }}>{error.message}</p>}
+              
+          {values.clicked && 
+            error.status && 
+            loginObject.email.length !== 0 && 
+            loginObject.password.length !== 0 && 
+            <p style={{color:'red',border:'1px solid red' }}>{error.message}</p>}
+
           <Box component="form" onSubmit={handleSubmit(handleLogin)} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -333,7 +381,6 @@ const SignIn = () => {
               >
                 Sign In
               </Button>
-              {values.clicked && error.status && loginObject.email.length !== 0 && loginObject.password.length !== 0 && <p style={{color:'red',border:'1px solid red' }}>{error.message}</p>}
             </div>
             <Grid container>
               <Grid item xs>

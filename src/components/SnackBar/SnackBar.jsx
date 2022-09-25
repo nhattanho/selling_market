@@ -80,7 +80,7 @@ const SnackBarModify = (props) => {
               anchorOrigin={{ vertical: "top", horizontal: "center" }}
               open={!status.error}
               onClose={status.message===LOADING? handleLoading : successClose}
-              autoHideDuration={3000}
+              autoHideDuration={4000}
             >
             <SnackbarContent
                 message={

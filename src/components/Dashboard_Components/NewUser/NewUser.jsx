@@ -21,21 +21,19 @@ import { auth, db, storage} from '../../../firebase.js';
 
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
+import {DropdownButton} from '../../DropdownButton/DropdownButton';
 import { extractErrorMessage } from '../../../utils/extract_function';
 import {getAuth} from "firebase/auth"; 
 import { ADDED_SUCCESS, LOADING } from '../../../utils/globalVariable';
 import './NewUser.scss';
 
 const NewUser = ({ inputs, title }) => {
+  //console.log("go to new user component");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [per, setPerc] = useState(null);
   const [file, setFile] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const handleShowPassword = (e) => {
-    e.preventDefault();
-    setShowPassword(!showPassword);
-  };
   const [error, setError] = useState({
     status: false,
     message: "",
@@ -50,17 +48,38 @@ const NewUser = ({ inputs, title }) => {
     status:"",
     phonenumber:"",
     country:"",
+    title: "",
+    professional: "",
     /*accessToken, timeStamp, id*/
   });
+/*Funtions for Snackbars*/
+const errorClose = () => {
+  setError({status: false, message:""});
+};
+
+const successClose = () => {
+  if(error.message === ADDED_SUCCESS){
+    setError({status: false, message: ""});
+    navigate(`/users/${newUserData.id}`, {state: {SingledataUser: newUserData}});
+  }
+};
+/**************************************/
+
+  const handleShowPassword = (e) => {
+    e.preventDefault();
+    setShowPassword(!showPassword);
+  };
 
   const handleChange = (e) => {
+    //console.log("goto handle change");
     setNewUserData({
       ...newUserData,
       [e.target.name]: e.target.value,
-    })
+    });
   };
 
   const handleSubmit = async (e) => {
+    //console.log(newUserData);
     e.preventDefault();
     setError({status: false, message: LOADING});
     //console.log("new user data", newUserData);
@@ -74,12 +93,12 @@ const NewUser = ({ inputs, title }) => {
       let myDateTemp = new Date(myDate);
       //console.log(myDate);
 
-      var updateNewUserData = {
+      var updateData = {
         ...newUserData,
         timeStamp: myDateTemp,
         id: res.user.uid,
         accessToken: res.user.accessToken,
-      }
+      };
 
       if(file){
         const name = new Date().getTime() + file.name;
@@ -91,14 +110,14 @@ const NewUser = ({ inputs, title }) => {
           "state_changed",
           (snapshot) => {
             progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log("Upload is " + progress + "% done");
+            //console.log("Upload is " + progress + "% done");
             setPerc(progress);
             switch (snapshot.state) {
               case "paused":
-                console.log("Upload is paused");
+                //console.log("Upload is paused");
                 break;
               case "running":
-                console.log("Upload is running");
+                //console.log("Upload is running");
                 break;
               default:
                 break;
@@ -110,30 +129,32 @@ const NewUser = ({ inputs, title }) => {
             setError({status: true, message: messageError});
           },
           async () => {
-            console.log("percentage", progress);
+            //console.log("percentage", progress);
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updateNewUserData.avatarurl = downloadURL;
+            updateData.avatarurl = downloadURL;
             // getDownloadURL(uploadTask.snapshot.ref)
             // .then(async (downloadURL) => {
             //   setNewUserData((prev) => ({ ...prev, avatarurl: downloadURL }));
             // });
             //console.log("updateNewUser", updateNewUserData);
-            await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
+            await setDoc(doc(db, "employees", res.user.uid), updateData);
             //console.log("dispatch here");
-            updateNewUserData.timeStamp = myDateTemp.toString();
-            dispatch(addNewUser(updateNewUserData));
-            // setError({status: false, message: ADDED_SUCCESS});
-            navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
+            updateData.timeStamp = myDateTemp.toString();
+            dispatch(addNewUser(updateData));
+            setNewUserData(updateData);
+            setError({status: false, message: ADDED_SUCCESS});
+            //navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
           }
         );
       }else{
         //console.log("updateNewUser", updateNewUserData);
-        await setDoc(doc(db, "employees", res.user.uid), updateNewUserData);
+        await setDoc(doc(db, "employees", res.user.uid), updateData);
         //console.log("dispatch here");
-        updateNewUserData.timeStamp = myDateTemp.toString();
-        dispatch(addNewUser(updateNewUserData));
+        updateData.timeStamp = myDateTemp.toString();
+        dispatch(addNewUser(updateData));
+        setNewUserData(updateData);
         setError({status: false, message: ADDED_SUCCESS});
-        navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
+        //navigate(`/users/${updateNewUserData.id}`, {state: {SingledataUser: updateNewUserData}});
       }
     } catch (err) {
       //console.log(err);
@@ -181,15 +202,6 @@ const NewUser = ({ inputs, title }) => {
   //   file && uploadFile();
   // }, [file]);
 
-  /*Funtions for Snackbars*/
-  const errorClose = () => {
-    setError({status: false, message:""});
-  };
-
-  const successClose = () => {
-    setError({status: false, message: ""});
-  };
-  /**************************************/
   return (
     <div className="new">
       <Sidebar />
@@ -227,16 +239,34 @@ const NewUser = ({ inputs, title }) => {
               {inputs.map((input) => (
                 <div className="formInput" key={input.id}>
                   <label>{input.label}</label>
-                  {input.type!=="password"?(
-                    <input name={input.name} type={input.type} onChange={handleChange} placeholder={input.placeholder} />
+                  {(input.type!=="password" && input.options.length === 0)?(
+                    <input 
+                      name={input.name} 
+                      type={input.type} 
+                      onInput={handleChange} 
+                      placeholder={input.placeholder} 
+                    />  
                   ):(
-                    <div className='showpassword'>
-                      <input name={input.name} type={showPassword ? "text" : "password"} onChange={handleChange} placeholder={input.placeholder} />
-                      <button onClick={(e) => {handleShowPassword(e)}}>
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </button>
-                    </div>
-                  )}
+                    (input.type!=="password" && input.options.length !== 0)?(
+                      <DropdownButton 
+                        value={input.placeholder} 
+                        name={input.name} 
+                        options={input.options} 
+                        onChange={handleChange}
+                      />
+                    ):(
+                      <div className='showpassword'>
+                        <input 
+                          name={input.name} 
+                          type={showPassword ? "text" : "password"} 
+                          onInput={handleChange} 
+                          placeholder={input.placeholder} 
+                        />
+                        <button onClick={(e) => {handleShowPassword(e)}}>
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </button>
+                      </div>
+                  ))}
                 </div>
               ))}
               <button type="submit">
@@ -275,7 +305,7 @@ const NewUser = ({ inputs, title }) => {
             />
           </Snackbar>
         ) : null}
-        {!error.status && (error.message === ADDED_SUCCESS || error.message===LOADING) ? (
+        {!error.status && (error.message===LOADING) ? (
           <Snackbar
               variant="success"
               key={error.message}
@@ -305,6 +335,37 @@ const NewUser = ({ inputs, title }) => {
             />
           </Snackbar>
         ) : null}
+        {!error.status && (error.message === ADDED_SUCCESS) ? (
+          <Snackbar
+              variant="success"
+              key={error.message}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+              open={!error.status}
+              onClose={successClose}
+              autoHideDuration={5000}
+          >
+            <SnackbarContent
+                message={
+                    <div style={{display:"flex", flexDirection:"row", alignItems:"center"}}>
+                        <span style={{ marginRight: "8px" }}>
+                            <CheckCircleOutlineIcon fontSize="large" color="success" />
+                        </span>
+                        <span> {error.message} </span>
+                    </div>
+                }
+                action={[
+                    <IconButton
+                        key="close"
+                        aria-label="close"
+                        onClick={successClose}
+                    >
+                        <CloseIcon color="secondary" />
+                    </IconButton>
+                ]}
+            />
+          </Snackbar>
+        ):(null)
+        }
       </div>
     </div>
   );
