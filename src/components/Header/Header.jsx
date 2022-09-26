@@ -20,7 +20,7 @@ const Header = () => {
     const isLogin = state.isLogin;
     var {username, title} = (state.hasOwnProperty('userLoginData')) ? state.userLoginData : "";
     //console.log("userreducer", userreducer);
-    title = title.toLowerCase();
+    if(isLogin) title = title.toLowerCase();
     const handleLogout = () => {
         dispatch(logoutAction());
         if(title === "admin"|| title === "manager") dispatch(adminLogout());
