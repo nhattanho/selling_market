@@ -15,6 +15,7 @@ export const REGISTER_SUCCESS = "Successfully!, Going to SignIn...";
 export const NEED_AN_ACCOUNT = "You need to create an account first!";
 export const NOTHING_CHANGED = "Nothing changed!"
 export const LOADING = "...loading";
+export const PASSWORD_AT_LEAST_SIX_CHARACTERS = "Password has at least 6 characters!";
 
 export const QUERY_DOC_FROM_DB_FAIL = "Coundn't get document from customer's DB!";
 export const SAVED_DB_FAIL= "Couldn't not save data in DB!";
@@ -31,4 +32,7 @@ export const PROFESSIONAL = "professional";
 export const BUYER = "buyer";
 export const MANAGER = "manager";
 export const ADMIN = "admin";
+export const PASSWORD = "password";
+export const SCORES = "scores";
+export const LEVEL = "level";
 

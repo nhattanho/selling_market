@@ -211,100 +211,19 @@ export const customerInputs = [
   },
   {
     id: 8,
-    label: "Title",
+    label: "Level",
     type: "text",
-    placeholder: "Manager",
-    name: "title",
-    options: [
-      {
-        id: 1,
-        label: "Choose your selection",
-        value: "",
-      },
-      {
-        id: 2,
-        label: "Admin",
-        value: "admin",
-      },
-      {
-        id: 3,
-        label: "Manager",
-        value: "manager",
-      },
-      {
-        id: 4,
-        label: "Employee",
-        value: "employee",
-      }
-    ],
+    placeholder: "beginner",
+    name: "level",
+    options: [],
   },
   {
     id: 9,
-    label: "Professional",
+    label: "Scores",
     type: "text",
-    placeholder: "Accounting",
-    name: "professional",
-    options: [
-      {
-        id: 1,
-        label: "Choose your selection",
-        value: "",
-      },
-      {
-        id: 2,
-        label: "Admin",
-        value: "admin",
-      },
-      {
-        id: 3,
-        label: "Manager",
-        value: "manager",
-      },
-      {
-        id: 4,
-        label: "Accounting",
-        value: "accounting",
-      },
-      {
-        id: 5,
-        label: "Software Engineering",
-        value: "software engineering",
-      },
-      {
-        id: 6,
-        label: "Shipper",
-        value: "shipper",
-      },
-    ],
-  },
-  {
-    id: 10,
-    label: "Status",
-    type: "text",
-    placeholder: "Active",
-    name: "status",
-    options: [
-      {
-        id: 1,
-        label: "Choose your selection",
-        value: "",
-      },
-      {
-        id: 2,
-        label: "Active",
-        value: "active",
-      },
-      {
-        id: 3,
-        label: "Inactive",
-        value: "inactive",
-      },
-      {
-        id: 4,
-        label: "Pending",
-        value: "pending",
-      },
-    ],
+    placeholder: "0",
+    name: "scores",
+    options: [],
   },
 ];
 

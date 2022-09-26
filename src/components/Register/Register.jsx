@@ -138,6 +138,8 @@ const Register = () => {
                     scores: 0,
                     avatarurl: "",
                     address: "",
+                    fullname: "",
+                    phonenumber: "",
                 }
                 setDoc(doc(db, CUSTOMERS, res.user.uid), userData).then(() => {
                     //console.log("saving done!");

@@ -32,6 +32,11 @@ import {
   ADMIN,
   MAIL,
   USERNAME,
+  PASSWORD_AT_LEAST_SIX_CHARACTERS,
+  PASSWORD,
+  CUSTOMERS,
+  SCORES,
+  LEVEL,
 } from '../../utils/globalVariable';
 import avatar from '../../utils/assets/random_avatar_images.png';
 import { extractErrorMessage } from '../../utils/extract_function';
@@ -67,21 +72,21 @@ const CustomerAccount = ({inputs, title}) => {
     useEffect(() => {
         const uploadFile = () => {
             const name = new Date().getTime() + file.name;
-            console.log(name);
+            //console.log(name);
             const storageRef = ref(storage, `avatar/customers/${data.id}/${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
             uploadTask.on(
             "state_changed",
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log("Upload is " + progress + "% done");
+                    //console.log("Upload is " + progress + "% done");
                     setPerc(progress);
                     switch (snapshot.state) {
                     case "paused":
-                        console.log("Upload is paused");
+                        //console.log("Upload is paused");
                         break;
                     case "running":
-                        console.log("Upload is running");
+                        //console.log("Upload is running");
                         break;
                     default:
                         break;
@@ -105,7 +110,7 @@ const CustomerAccount = ({inputs, title}) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if(data.password.length < 6) 
-            setStatus({error: true, message: "Password has at least 6 characters!"});
+            setStatus({error: true, message: PASSWORD_AT_LEAST_SIX_CHARACTERS});
         else {
             setStatus({error: false, message: LOADING});
             /*Update firestore DB*/
@@ -116,7 +121,7 @@ const CustomerAccount = ({inputs, title}) => {
                 if(data.hasOwnProperty(prop)){
                     if(data[prop] !== preData[prop]){
                         console.log("prop", prop);
-                        if(prop.toString() === "password") passwordChanged = true;
+                        if(prop.toString() === PASSWORD) passwordChanged = true;
                         changedProps.push(prop);
                     }      
                 }
@@ -125,7 +130,7 @@ const CustomerAccount = ({inputs, title}) => {
                 changedProps.forEach((prop, index)=>{
                     updatedObject[prop] = data[prop];
                 });
-                const updateRef = doc(db, "customers", data.id);
+                const updateRef = doc(db, CUSTOMERS, data.id);
                 if(passwordChanged){
                     /*Update Authentication password*/
                     updatePassword(user, data.password).then(async () => {
@@ -222,7 +227,9 @@ const CustomerAccount = ({inputs, title}) => {
                                 onInput={handleChange} 
                                 disabled={(
                                     input.type=== MAIL || 
-                                    input.name=== USERNAME)
+                                    input.name=== USERNAME ||
+                                    input.name === SCORES ||
+                                    input.name === LEVEL)
                                     ?true:false}
                                 />
                             )

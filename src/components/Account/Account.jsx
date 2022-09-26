@@ -32,6 +32,9 @@ import {
   ADMIN,
   MAIL,
   USERNAME,
+  PASSWORD_AT_LEAST_SIX_CHARACTERS,
+  PASSWORD,
+  EMPLOYEES,
 } from '../../utils/globalVariable';
 import avatar from '../../utils/assets/random_avatar_images.png';
 import { extractErrorMessage } from '../../utils/extract_function';
@@ -68,7 +71,7 @@ const Account = ({inputs, title}) => {
   useEffect(() => {
     const uploadFile = () => {
     const name = new Date().getTime() + file.name;
-    console.log(name);
+    //console.log(name);
     const storageRef = ref(storage, `avatar/employees/${data.id}/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -76,14 +79,14 @@ const Account = ({inputs, title}) => {
         "state_changed",
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log("Upload is " + progress + "% done");
+          //console.log("Upload is " + progress + "% done");
           setPerc(progress);
           switch (snapshot.state) {
             case "paused":
-              console.log("Upload is paused");
+              //console.log("Upload is paused");
               break;
             case "running":
-              console.log("Upload is running");
+              //console.log("Upload is running");
               break;
             default:
               break;
@@ -106,7 +109,7 @@ const Account = ({inputs, title}) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(data.password.length < 6) setStatus({error: true, message: "Password has at least 6 characters!"});
+    if(data.password.length < 6) setStatus({error: true, message: PASSWORD_AT_LEAST_SIX_CHARACTERS});
     else {
       setStatus({error: false, message: LOADING});
       /*Update firestore DB*/
@@ -117,7 +120,7 @@ const Account = ({inputs, title}) => {
           if(data.hasOwnProperty(prop)){
               if(data[prop] !== preData[prop]){
                   console.log("prop", prop);
-                  if(prop.toString() === "password") passwordChanged = true;
+                  if(prop.toString() === PASSWORD) passwordChanged = true;
                   changedProps.push(prop);
               }      
           }
@@ -126,7 +129,7 @@ const Account = ({inputs, title}) => {
         changedProps.forEach((prop, index)=>{
           updatedObject[prop] = data[prop];
         });
-        const updateRef = doc(db, "employees", data.id);
+        const updateRef = doc(db, EMPLOYEES, data.id);
         if(passwordChanged){
           /*Update Authentication password*/
           updatePassword(user, data.password).then(async () => {
@@ -152,7 +155,7 @@ const Account = ({inputs, title}) => {
         }else{
           try {
             /*Actual Updated firestore DB*/
-            console.log("update firestore DB");
+            //console.log("update firestore DB");
             await updateDoc(updateRef, {...updatedObject,});
             updatedObject = {
               ...data,
@@ -165,7 +168,7 @@ const Account = ({inputs, title}) => {
           }
         }
       }else {
-        console.log("Nothing changed!");
+        //console.log("Nothing changed!");
         setStatus({error: false, message: NOTHING_CHANGED});
       }
     }

@@ -1,5 +1,18 @@
-import "./Sidebar.scss";
-import React from 'react';
+import React, { useContext } from 'react';
+import { Link } from "react-router-dom";
+
+import { useSelector, useDispatch } from "react-redux";
+import { getusersAction } from "../../../Redux/actions/user_action";
+
+import { db } from "../../../firebase";
+import {
+   getDocs, 
+   collection, 
+   query, 
+   where, 
+   orderBy, 
+   limit } from "firebase/firestore";
+
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -12,17 +25,18 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import SettingsSystemDaydreamOutlinedIcon from "@mui/icons-material/SettingsSystemDaydreamOutlined";
 import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import { Link } from "react-router-dom";
-// import { DarkModeContext } from "../../context/darkModeContext";
-import { useContext } from "react";
-import { db } from "../../../firebase";
-import { getDocs, collection, query, where, orderBy, limit } from "firebase/firestore";
-import { useSelector, useDispatch } from "react-redux";
-import { getusersAction } from "../../../Redux/actions/user_action";
+
+import { MANAGER, ADMIN } from '../../../utils/globalVariable';
+
+// import { DarkModeContext } from "../../context/darkModeContext"
+import "./Sidebar.scss";
 
 const Sidebar = () => {
   //const { dispatch } = useContext(DarkModeContext);
   const dispatch = useDispatch();
+  const state = useSelector((state) => state.AuthReducer);
+  const data = state.hasOwnProperty('userLoginData') ? state.userLoginData : {};
+  const title = data.title.toLowerCase();
 
   return (
     <div className="sidebar">
@@ -46,12 +60,14 @@ const Sidebar = () => {
           </Link>
 
           <p className="title">LISTS</p>
-          <Link to="/users" style={{ textDecoration: "none" }}>
-            <li>
-              <PersonOutlineIcon className="icon" />
-              <span>Users</span>
-            </li>
-          </Link>
+          {(title === MANAGER || title === ADMIN) && 
+            <Link to="/users" style={{ textDecoration: "none" }}>
+              <li>
+                <PersonOutlineIcon className="icon" />
+                <span>Users</span>
+              </li>
+            </Link>
+          }
 
           <Link to="/products" style={{ textDecoration: "none" }}>
             <li>
