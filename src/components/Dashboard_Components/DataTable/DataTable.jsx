@@ -54,12 +54,12 @@ const Datatable = () => {
   }
   //console.log("Data table", state);
   const havegetuserfromdb = state.havegetuserfromdb;
-  console.log("havegetuserfromdb", havegetuserfromdb);
+  //console.log("havegetuserfromdb", havegetuserfromdb);
 
   const [status, setStatus] = useState({error: false, message: ""});
 
   useEffect(() => {
-    console.log("in effect data table");
+    //console.log("in effect data table");
     /*Prevent requesting data many times for admin user,
     any action relating to  user like delete, add, update,...
     we are not only update the DB but also for the state of
@@ -67,7 +67,7 @@ const Datatable = () => {
     logout and login again to get the lastest employee information*/
     //console.log("into userEffect", getuserfromdb);
     if(!havegetuserfromdb){
-      console.log("fetching data");
+      //console.log("fetching data");
       const q = query(collection(db, "employees"), orderBy("timeStamp"), limit(100));
       getDocs(q).then((querySnapshot) => {
         var id = ""; 
@@ -126,9 +126,9 @@ const Datatable = () => {
           userInFirebaseAuth,
           authCredential,
           );
-          console.log("waiting for deleting Auth DB");
+          //console.log("waiting for deleting Auth DB");
           await deleteUser(result.user);
-          console.log("Deleted Auth DB");
+          //console.log("Deleted Auth DB");
           /*Deleted from Firestore DB*/
           await deleteDoc(doc(db, "employees", id));
           const newarrayusers = arrayusers.filter(user => user.id !== id);
@@ -145,7 +145,6 @@ const Datatable = () => {
         console.log("fail in signin",err);
         var errorMessage = extractErrorMessage(err);
         errorMessage = errorMessage==="" ? "Deleted Fail" : errorMessage;
-        console.log("err",err);
         setStatus({error:true, message: errorMessage});
       })
     } catch (err) {

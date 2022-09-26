@@ -31,7 +31,7 @@ const SnackBarModify = (props) => {
     };
 
     const successClose = () =>{
-        console.log("success close");
+        //console.log("success close");
         setStatusChild({error: !status.error, message: ""});
         props.getbackdatafromSnackBar({error: false, message: ""});
     }

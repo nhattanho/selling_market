@@ -9,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Button from '@mui/material/Button';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
-import { BUYER } from '../../utils/globalVariable';
+import { ADMIN, BUYER, MANAGER } from '../../utils/globalVariable';
 
 import './Header.css';
 
@@ -23,7 +23,10 @@ const Header = () => {
     if(isLogin) title = title.toLowerCase();
     const handleLogout = () => {
         dispatch(logoutAction());
-        if(title === "admin"|| title === "manager") dispatch(adminLogout());
+        /*This requires for fetching DB data every single time 
+        when the admin or manager log out -> log in into the web app*/
+        if(title === ADMIN|| title === MANAGER) 
+            dispatch(adminLogout());
         //persistor.purge();
     };
 
