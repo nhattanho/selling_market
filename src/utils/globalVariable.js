@@ -10,15 +10,18 @@ export const UPDATE_PASSWORD_FAIL = "Updated password fail!";
 export const UPDATED_DB_FAIL = "Updated DB Fail!";
 export const ADDED_SUCCESS = "Added sucessfully!";
 
+export const QUERY_DOC_FROM_DB_FAIL = "Coundn't get document from customer's DB!";
+export const SAVED_DB_FAIL= "Couldn't not save data in DB!";
+
 export const NOT_AN_EMPLOYEE = "You are not an employee!";
 export const REGISTER_SUCCESS = "Successfully!, Going to SignIn...";
 export const NEED_AN_ACCOUNT = "You need to create an account first!";
 export const NOTHING_CHANGED = "Nothing changed!"
 export const LOADING = "...loading";
 export const PASSWORD_AT_LEAST_SIX_CHARACTERS = "Password has at least 6 characters!";
+export const WAITING_UPDATE_IMAGE = "Waiting for uploading image!";
+export const UPDATE_IMAGE_SUCCESS = "Done!"
 
-export const QUERY_DOC_FROM_DB_FAIL = "Coundn't get document from customer's DB!";
-export const SAVED_DB_FAIL= "Couldn't not save data in DB!";
 
 export const EMPLOYEES = "employees";
 export const EMPLOYEE = "employee";
