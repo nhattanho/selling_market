@@ -14,7 +14,12 @@ import ErrorIcon from '@mui/icons-material/Error';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
-import { LOADING, LOGIN_AGAIN } from '../../utils/globalVariable';
+import { 
+    LOADING, 
+    LOGIN_AGAIN, 
+    UPDATED_SUCCESS, 
+    UPDATE_IMAGE_SUCCESS,
+    WAITING_UPDATE_IMAGE } from '../../utils/globalVariable';
 /*They way to get value from the Child back to Parent Component*/
 /*https://stackoverflow.com/questions/38394015/how-to-pass-data-from-child-component-to-its-parent-in-reactjs*/
 const SnackBarModify = (props) => {
@@ -37,8 +42,7 @@ const SnackBarModify = (props) => {
     }
 
     const handleLoading = () =>{
-        console.log("success loading");
-        setStatusChild({error: !status.error, message: ""});
+        //setStatusChild({error: false, message: status.message});
         props.getbackdatafromSnackBar({error: false, message: ""});
     };
 
@@ -79,8 +83,14 @@ const SnackBarModify = (props) => {
               key={status.message}
               anchorOrigin={{ vertical: "top", horizontal: "center" }}
               open={!status.error}
-              onClose={status.message===LOADING? handleLoading : successClose}
-              autoHideDuration={4000}
+              onClose={
+                (status.message===LOADING ||
+                 status.message === WAITING_UPDATE_IMAGE)
+                ? handleLoading : successClose}
+              autoHideDuration={
+                (status.message === UPDATE_IMAGE_SUCCESS ||
+                 status.message === UPDATED_SUCCESS)?
+                2000:4000}
             >
             <SnackbarContent
                 message={
@@ -95,7 +105,10 @@ const SnackBarModify = (props) => {
                     <IconButton
                         key="close"
                         aria-label="close"
-                        onClick={status.message===LOADING? handleLoading : successClose}
+                        onClick={
+                            (status.message===LOADING ||
+                             status.message === WAITING_UPDATE_IMAGE)
+                            ? handleLoading : successClose}
                     >
                         <CloseIcon color="secondary" />
                     </IconButton>

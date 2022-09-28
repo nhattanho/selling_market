@@ -37,6 +37,8 @@ import {
   CUSTOMERS,
   SCORES,
   LEVEL,
+  WAITING_UPDATE_IMAGE,
+  UPDATE_IMAGE_SUCCESS,
 } from '../../utils/globalVariable';
 import avatar from '../../utils/assets/random_avatar_images.png';
 import { extractErrorMessage } from '../../utils/extract_function';
@@ -56,7 +58,7 @@ const CustomerAccount = ({inputs, title}) => {
     const [status, setStatus] = useState({error: false, message: ""});
     const [per, setPerc] = useState(null);
     const [file, setFile] = useState("");
-
+    //console.log("status",status);
     const handleChange = (e) => {
         setUserData({
         ...data,
@@ -71,6 +73,7 @@ const CustomerAccount = ({inputs, title}) => {
 
     useEffect(() => {
         const uploadFile = () => {
+            setStatus({error: false, message: WAITING_UPDATE_IMAGE});
             const name = new Date().getTime() + file.name;
             //console.log(name);
             const storageRef = ref(storage, `avatar/customers/${data.id}/${file.name}`);
@@ -100,6 +103,7 @@ const CustomerAccount = ({inputs, title}) => {
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     setUserData((prev) => ({ ...prev, avatarurl: downloadURL }));
+                    setStatus({error: false, message: UPDATE_IMAGE_SUCCESS});
                     });
                 }
             );
@@ -170,7 +174,7 @@ const CustomerAccount = ({inputs, title}) => {
                 }
             }else {
                 console.log("Nothing changed!");
-                setStatus({error: false, message: NOTHING_CHANGED});
+                setStatus({error: false, message: UPDATED_SUCCESS});
             }
         }
     }
@@ -254,7 +258,8 @@ const CustomerAccount = ({inputs, title}) => {
           ) : null}
           {!status.error&& (
             status.message === UPDATED_SUCCESS 
-            || status.message === NOTHING_CHANGED) ? (
+            || status.message === WAITING_UPDATE_IMAGE
+            || status.message === UPDATE_IMAGE_SUCCESS) ? (
               <SnackBarModify getbackdatafromSnackBar={(status) => setStatus(status)} status={status}/>
           ) : null}
           {!status.error && status.message === LOADING ? (
