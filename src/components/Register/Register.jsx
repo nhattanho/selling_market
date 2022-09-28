@@ -140,6 +140,7 @@ const Register = () => {
                     address: "",
                     fullname: "",
                     phonenumber: "",
+                    country: "",
                 }
                 setDoc(doc(db, CUSTOMERS, res.user.uid), userData).then(() => {
                     //console.log("saving done!");
